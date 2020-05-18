@@ -1,0 +1,28 @@
+<launch>
+  <!--SITE husk_empty_world.launch-->
+
+  <!--Give the name of the world to launch-->
+  <arg name="world_name" default="$(find smile_mobile_sim)/worlds/smile.world"/>
+
+  <!--Sensors to enable on the husky robot-->
+  <arg name="laser_enabled" default="$(optenv HUSKY_LASER_ENABLED true)"/>
+  <arg name="ur5_enabled" default="$(optenv HUSKY_UR5_ENABLED false)"/>
+  <arg name="kinect_enabled" default="$(optenv HUSKY_KINECT_ENABLED false)"/>
+
+  <!--Launch the world-->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(arg world_name)"/> <!-- world_name is wrt GAZEBO_RESOURCE_PATH environment variable -->
+    <arg name="paused" value="false"/>
+    <arg name="use_sim_time" value="true"/>
+    <arg name="gui" value="true"/>
+    <arg name="headless" value="false"/>
+    <arg name="debug" value="false"/>
+ </include>
+
+ <!--Launch the husky robot-->
+ <include file="$(find husky_gazebo)/launch/spawn_husky.launch">
+   <arg name="laser_enabled" value="$(arg laser_enabled)"/>
+   <arg name="kinect_enabled" value="$(arg kinect_enabled)"/>
+ </include>
+
+</launch>
