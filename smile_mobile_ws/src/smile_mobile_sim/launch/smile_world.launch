@@ -5,16 +5,17 @@
   <arg name="world_name" default="$(find smile_mobile_sim)/worlds/smile.world"/>
 
   <!--Sensors to enable on the husky robot-->
-  <arg name="laser_enabled" default="$(optenv HUSKY_LASER_ENABLED true)"/>
+  <arg name="laser_enabled" default="$(optenv HUSKY_LASER_ENABLED false)"/>
   <arg name="ur5_enabled" default="$(optenv HUSKY_UR5_ENABLED false)"/>
-  <arg name="kinect_enabled" default="$(optenv HUSKY_KINECT_ENABLED false)"/>
+  <arg name="kinect_enabled" default="$(optenv HUSKY_KINECT_ENABLED true)"/>
+  <arg name="gui" default="false"/>
 
   <!--Launch the world-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
     <arg name="world_name" value="$(arg world_name)"/> <!-- world_name is wrt GAZEBO_RESOURCE_PATH environment variable -->
     <arg name="paused" value="false"/>
     <arg name="use_sim_time" value="true"/>
-    <arg name="gui" value="true"/>
+    <arg name="gui" value="$(arg gui)"/>
     <arg name="headless" value="false"/>
     <arg name="debug" value="false"/>
  </include>
