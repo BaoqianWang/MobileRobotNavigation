@@ -29,10 +29,16 @@
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
 
   <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
   <build_depend>gazebo_ros</build_depend>
   <build_depend>gazebo_plugins</build_depend>
+  <build_depend>gazebo_msgs</build_depend>
   <build_depend>husky_gazebo</build_depend>
   
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>gazebo_plugins</exec_depend>
   <exec_depend>husky_gazebo</exec_depend>
