@@ -5,9 +5,9 @@
   <arg name="world_name" default="$(find gazebo_ros)/worlds/empty.world"/>
 
   <!--Sensors to enable on the husky robot-->
-  <arg name="laser_enabled" default="$(optenv HUSKY_LASER_ENABLED true)"/>
+  <arg name="laser_enabled" default="$(optenv HUSKY_LASER_ENABLED false)"/>
   <arg name="ur5_enabled" default="$(optenv HUSKY_UR5_ENABLED false)"/>
-  <arg name="kinect_enabled" default="$(optenv HUSKY_KINECT_ENABLED false)"/>
+  <arg name="kinect_enabled" default="$(optenv HUSKY_KINECT_ENABLED true)"/>
 
   <!--Launch the world-->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
