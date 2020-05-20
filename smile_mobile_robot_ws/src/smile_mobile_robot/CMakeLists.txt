@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
     rospy
     std_msgs
     message_generation
+    pid
 )
 
 add_message_files(
@@ -19,7 +20,8 @@ generate_messages(
 )
 
 catkin_package(
-    CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+    CATKIN_DEPENDS roscpp
+    rospy std_msgs message_runtime pid
 )
 
 include_directories(
