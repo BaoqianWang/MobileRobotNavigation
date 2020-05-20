@@ -41,6 +41,8 @@ class Wheel_Driver:
         self.velocity_pwm = 0
         self.angle_pwm = 0
 
+        self.max_pwm = 255.0
+
 
     def _pwm_subscriber_callback(self, pwm_msg):
         '''
@@ -51,8 +53,11 @@ class Wheel_Driver:
         Returns:
             N/A
         '''
-        self.velocity_pwm = pwm_msg.data[0]
-        self.angle_pwm = pwm_msg.data[1]
+        #The husky robot takes values between -1 and 1. So normalize the PWM value
+        
+        self.velocity_pwm = pwm_msg.data[0] / self.max_pwm
+        self.angle_pwm = pwm_msg.data[1] / self.max_pwm
+        print(self.velocity_pwm)
 
         self.vel_twist_msg.linear.x = self.velocity_pwm
         self.vel_twist_msg.linear.y = 0

@@ -2,12 +2,13 @@
   <!--Launch the PID controllers for velocity and steering-->
   <!--The PID is from the ROS pid package-->
   <!--Velocity Controlller-->
+
   <node name="pid_controller" pkg="pid" type="controller" ns="velocity">
     <param name="Kp" value="5.0"/>
     <param name="Ki" value="0.0"/>
     <param name="Kd" value="0.0"/>
-    <param name="upper_limit" value="10"/>
-    <param name="lower_limit" value="0"/>
+    <param name="upper_limit" value="127"/>
+    <param name="lower_limit" value="-127"/>
     <param name="windup_limit" value="10"/>
     <param name="max_loop_frequency" value="100.0"/>
     <param name="min_loop_frequency" value="100.0"/>
@@ -17,11 +18,14 @@
     <param name="Kp" value="5.0"/>
     <param name="Ki" value="0.0"/>
     <param name="Kd" value="0.0"/>
-    <param name="upper_limit" value="10"/>
-    <param name="lower_limit" value="0"/>
-    <param name="windup_limit" value="10"/>
+    <param name="upper_limit" value="127"/>
+    <param name="lower_limit" value="-127"/>
+    <param name="windup_limit" value="0"/>
     <param name="max_loop_frequency" value="100.0"/>
     <param name="min_loop_frequency" value="100.0"/>
   </node>
+
+  <!--Movement_Controller-->
+  <node name="movement_controller" pkg="smile_mobile_robot" type="movement_controller.py"/>
 
 </launch>

@@ -5,6 +5,9 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
+    sensor_msgs
+    geometry_msgs
+    nav_msgs
     message_generation
     pid
 )
@@ -22,8 +25,15 @@ generate_messages(
 catkin_package(
     CATKIN_DEPENDS roscpp
     rospy std_msgs message_runtime pid
+    sensor_msgs geometry_msgs nav_msgs
 )
 
 include_directories(
     ${catkin_INCLUDE_DIRS}
+)
+
+catkin_install_python(PROGRAMS
+    src/control/movement_controller.py
+    src/perception/odometry.py
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
