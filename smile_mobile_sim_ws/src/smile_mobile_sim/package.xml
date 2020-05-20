@@ -1,9 +1,10 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>smile_mobile_robot</name>
+  <name>smile_mobile_sim</name>
   <version>0.0.0</version>
   <description>
-    This package contains contents necessary for smile mobile robot.
+    This package contains contents necessary for gazebo simulation of the
+    smile-mobile robot.
   </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
@@ -29,12 +30,23 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>rospy</build_depend>
-  <build_depend>roscpp</build_depend>
   <build_depend>std_msgs</build_depend>
-  
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>gazebo_ros</build_depend>
+  <build_depend>gazebo_plugins</build_depend>
+  <build_depend>gazebo_msgs</build_depend>
+  <build_depend>husky_gazebo</build_depend>
+  <build_depend>smile_mobile_robot</build_depend>
+
   <exec_depend>rospy</exec_depend>
-  <exec_depend>roscpp</exec_depend>
   <exec_depend>std_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>gazebo_ros</exec_depend>
+  <exec_depend>gazebo_plugins</exec_depend>
+  <exec_depend>husky_gazebo</exec_depend>
+  <exec_depend>smile_mobile_robot</exec_depend>
+  <exec_depend>gazebo</exec_depend>
+
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

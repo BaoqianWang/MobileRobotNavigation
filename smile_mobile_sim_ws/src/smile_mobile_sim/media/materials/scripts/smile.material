@@ -1,0 +1,94 @@
+material Smile/Solid_Lane
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture solid_lane.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Smile/Intersection
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture intersection.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Smile/Two_Lane
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture two_lane_road.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Smile/Two_Way
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture two_way_road.png
+        filtering trilinear
+      }
+    }
+  }
+}
+
+material Smile/Yellow_Lane
+{
+  technique
+  {
+    pass
+    {
+      ambient 0.1 0.1 0.1 1.0
+      diffuse 0.8 0.8 0.8 1.0
+      specular 0.01 0.01 0.01 1.0 2.0
+
+      texture_unit
+      {
+        texture yellow_lane.png
+        filtering trilinear
+      }
+    }
+  }
+}

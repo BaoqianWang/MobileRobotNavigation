@@ -1,0 +1,103 @@
+<sdf version='1.6'>
+  <world name='default'>
+    <scene>
+      <grid>1</grid>
+      <ambient>0.4 0.4 0.4 1</ambient>
+      <background>0.7 0.7 0.7 1</background>
+      <shadows>1</shadows>
+    </scene>
+    <light name='sun' type='directional'>
+      <cast_shadows>1</cast_shadows>
+      <pose frame=''>0 0 10 0 -0 0</pose>
+      <diffuse>0.8 0.8 0.8 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <attenuation>
+        <range>1000</range>
+        <constant>0.9</constant>
+        <linear>0.01</linear>
+        <quadratic>0.001</quadratic>
+      </attenuation>
+      <direction>-0.5 0.1 -0.9</direction>
+    </light>
+    <model name='ground'>
+      <link name='body'>
+        <collision name='geom'>
+          <geometry>
+            <plane>
+              <normal>0 0 1</normal>
+              <size>1 1</size>
+            </plane>
+          </geometry>
+          <surface>
+            <friction>
+              <ode>
+                <mu>100</mu>
+                <mu2>50</mu2>
+              </ode>
+              <torsional>
+                <ode/>
+              </torsional>
+            </friction>
+            <contact>
+              <ode/>
+            </contact>
+            <bounce/>
+          </surface>
+          <max_contacts>10</max_contacts>
+        </collision>
+        <self_collide>0</self_collide>
+        <enable_wind>0</enable_wind>
+        <kinematic>0</kinematic>
+      </link>
+      <static>1</static>
+    </model>
+    <road name='Solid_Lane'>
+      <width>4</width>
+      <point>0 2 0</point>
+      <point>10 2 0</point>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/smile.material</uri>
+          <name>Smile/Solid_Lane</name>
+        </script>
+      </material>
+    </road>
+    <road name='Intersection'>
+      <width>4</width>
+      <point>10 2 0</point>
+      <point>14 2 0</point>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/smile.material</uri>
+          <name>Smile/Intersection</name>
+        </script>
+      </material>
+    </road>
+    <road name='Two_Lane'>
+      <width>4</width>
+      <point>12 4 0</point>
+      <point>12 18 0</point>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/smile.material</uri>
+          <name>Smile/Two_Lane</name>
+        </script>
+      </material>
+    </road>
+    <road name='Two_way'>
+      <width>4</width>
+      <point>12 0 0</point>
+      <point>12 -5 0</point>
+      <point>11.5 -6 0</point>
+      <point>10.5 -7 0</point>
+      <point>9.5 -7.5 0</point>
+      <point>0 -7.5 0</point>
+      <material>
+        <script>
+          <uri>file://media/materials/scripts/smile.material</uri>
+          <name>Smile/Two_Way</name>
+        </script>
+      </material>
+    </road>
+  </world>
+</sdf>
