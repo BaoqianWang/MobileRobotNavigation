@@ -42,5 +42,6 @@ include_directories(
 catkin_install_python(PROGRAMS
     src/control/movement_controller.py
     src/perception/odometry.py
+    src/helpers/send_desired_odom.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

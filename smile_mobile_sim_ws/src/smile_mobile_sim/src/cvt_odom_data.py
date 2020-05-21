@@ -12,6 +12,7 @@ import rospy
 from nav_msgs.msg import Odometry
 from smile_mobile_robot.msg import Odom
 import tf
+import math
 
 class Cvt_Odom_Data:
     """
@@ -29,7 +30,7 @@ class Cvt_Odom_Data:
         rospy.Subscriber('/odometry/filtered', Odometry, self._husky_odom_callback)
 
         #Publisher to smile odometry measured data
-        self.smile_odom_pub = rospy.Publisher('/odometry/measured', Odom, queue_size=10)
+        self.smile_odom_pub = rospy.Publisher('/odom/measured', Odom, queue_size=10)
         self.smile_odom_msg = Odom()
 
     def _husky_odom_callback(self, husky_odom_msg):
@@ -49,11 +50,13 @@ class Cvt_Odom_Data:
             husky_odom_msg.pose.pose.orientation.w]
 
         [roll, pitch, yaw] = tf.transformations.euler_from_quaternion(quaternion)
+        self.smile_odom_msg.header.stamp = rospy.Time.now()
         self.smile_odom_msg.orientation.roll = roll
         self.smile_odom_msg.orientation.pitch = pitch
-        self.smile_odom_msg.orientation.yaw = yaw
+        self.smile_odom_msg.orientation.yaw = (yaw * 180.0 / math.pi)
 
-        self.smile_odom_msg.velocity = husky_odom_msg.twist.twist.linear.x
+        #Velocity converted from m/s to cm/s => PID constants don't have to be as large.
+        self.smile_odom_msg.velocity = husky_odom_msg.twist.twist.linear.x * 100.0
 
         self.smile_odom_pub.publish(self.smile_odom_msg)
 

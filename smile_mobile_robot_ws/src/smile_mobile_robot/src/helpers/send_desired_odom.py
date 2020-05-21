@@ -7,7 +7,7 @@ Description: This python module is a helping/test module to simply
     testing/tuning the PIDs.
 '''
 import rospy
-from nav_msgs.msg import Odometry
+from smile_mobile_robot.msg import Odom
 import sys
 import argparse
 
@@ -31,17 +31,19 @@ def run():
     print(args.odom)
     rospy.init_node('send_desired_odom')
 
-    odom_pub = rospy.Publisher('/odometry/desired', Odometry, queue_size=1)
+    odom_pub = rospy.Publisher('/odom/desired', Odom, queue_size=1)
     odom_rate = rospy.Rate(10) #Send at 10Hz
 
-    odom_msg = Odometry()
+    odom_msg = Odom()
 
-    #Linear velocity and angular position
-    odom_msg.twist.twist.linear.x = args.odom[0]
-    odom_msg.pose.pose.angular.z = args.odom[1]
+
+    odom_msg.velocity = args.odom[0]
+    odom_msg.orientation.yaw = args.odom[1]
 
     try:
         while not rospy.is_shutdown():
+            #Linear velocity and angular position
+            odom_msg.header.stamp = rospy.Time.now()
             odom_pub.publish(odom_msg)
             odom_rate.sleep()
 
