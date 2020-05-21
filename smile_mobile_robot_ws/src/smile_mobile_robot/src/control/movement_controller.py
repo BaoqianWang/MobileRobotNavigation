@@ -7,9 +7,9 @@ Description: This python module controls the movement of the robot using
 '''
 import rospy
 from geometry_msgs.msg import Twist
-from nav_msgs.msg import Odometry
 from std_msgs.msg import Float64, Int16MultiArray
-
+from smile_mobile_robot.msg import Odom
+import tf
 import time
 
 class Movement_Controller:
@@ -31,10 +31,10 @@ class Movement_Controller:
         rospy.init_node(node_name)
 
         #Initialize subscriber for measured_odometry
-        rospy.Subscriber("/odometry/filtered", Odometry, self._measured_odom_data_callback)
+        rospy.Subscriber("/odom/measured", Odom, self._measured_odom_data_callback)
 
         #Initialize subscriber for desired_odometry
-        rospy.Subscriber("/odometry/desired", Odometry, self._desired_odom_data_callback)
+        rospy.Subscriber("/odom/desired", Odom, self._desired_odom_data_callback)
 
         self._initialize_pid_controlers()
 
@@ -107,10 +107,10 @@ class Movement_Controller:
             N/A
         '''
         self.measured_odom = measured_odom_msg
-        self.measured_vel_x = self.measured_odom.twist.twist.linear.x
+        self.measured_vel_x = self.measured_odom.velocity
 
         #Orientation is the direction the robot faces
-        self.measured_orientation = self.measured_odom.twist.twist.angular.z
+        self.measured_orientation = self.measured_odom.orientation.yaw
 
 
     def _desired_odom_data_callback(self, measured_odom_msg):
@@ -124,10 +124,10 @@ class Movement_Controller:
             N/A
         '''
         self.desired_odom = measured_odom_msg
-        self.desired_vel_x = self.desired_odom.twist.twist.linear.x
+        self.desired_vel_x = self.desired_odom.velocity
 
         #Orientation is the direction the robot faces
-        self.desired_orientation = self.desired_odom.twist.twist.angular.z
+        self.desired_orientation = self.desired_odom.orientation.yaw
 
     def map_control_efforts_to_pwms(self, vel_control_effort, steering_control_effort):
         '''

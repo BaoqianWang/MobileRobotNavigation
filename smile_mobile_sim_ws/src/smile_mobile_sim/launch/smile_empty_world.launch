@@ -29,7 +29,10 @@
    <arg name="kinect_enabled" value="$(arg kinect_enabled)"/>
  </include>
 
-
+<!--Wheel Driver takes input PWMs and converts to simulation velocity-->
  <node name="wheel_driver" pkg="smile_mobile_sim" type="wheel_driver.py"/>
 
+<!--cvt odom data converts the Husky's odometry data format to the smile robots
+    odometry format-->
+  <node name="cvt_odom_data" pkg="smile_mobile_sim" type="cvt_odom_data.py"/>
 </launch>

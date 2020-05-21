@@ -13,14 +13,21 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 add_message_files(
+  DIRECTORY msg
   FILES
-  smile_pwm.msg
+  Orientation.msg
+  Position.msg
+  Odom.msg
 )
+
 
 generate_messages(
   DEPENDENCIES
   std_msgs
 )
+
+
+
 
 catkin_package(
     CATKIN_DEPENDS roscpp
