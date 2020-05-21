@@ -8,7 +8,8 @@ Description: This python module controls the movement of the robot using
 import rospy
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from std_msgs.msg import Float64
+from std_msgs.msg import Float64, Int16MultiArray
+
 import time
 
 class Movement_Controller:
@@ -35,10 +36,20 @@ class Movement_Controller:
         #Initialize subscriber for desired_odometry
         rospy.Subscriber("/odometry/desired", Odometry, self._desired_odom_data_callback)
 
+        self._initialize_pid_controlers()
+
+        self.pwm_pub = rospy.Publisher("/pwm", Int16MultiArray, queue_size=10)
+        self.pwm_msg = Int16MultiArray()
+
         self.pid_timer = rospy.Rate(100) #100Hz
 
         #Initialize publisher for writing PWM
         self.measured_vel_x = 0.0
+        self.desired_vel_x = 0.0
+        self.measured_orientation = 0.0
+        self.desired_orientation = 0.0
+        self.vel_control = 0.0
+        self.steering_control = 0.0
 
     def _initialize_pid_controlers(self):
         '''
@@ -55,8 +66,8 @@ class Movement_Controller:
         self.steering_setpoint_pub = rospy.Publisher('/steering/setpoint', Float64, queue_size=10)
 
         #State is the measured value
-        self.vel_state_pub = rospy.Publisher('/velocity/setpoint', Float64, queue_size=10)
-        self.steering_state_pub = rospy.Publisher('/steering/setpoint', Float64, queue_size=10)
+        self.vel_state_pub = rospy.Publisher('/velocity/state', Float64, queue_size=10)
+        self.steering_state_pub = rospy.Publisher('/steering/state', Float64, queue_size=10)
 
         #Subscribe to the control output from the PID controllers
         rospy.Subscriber('/velocity/control_effort', Float64, self._velocity_control_callback)
@@ -123,9 +134,21 @@ class Movement_Controller:
         Maps the control efforts for velocity and steering to individual motor
         PWMS.
 
-        Parameter:
-            vel_control_effort        
+        Parameters:
+            vel_control_effort: Velocity Control effort output from PID.
+            steering_control_effort: sterring control effor output from PID
+        Returns:
+            pwms: [pwm_1, pwm_2, pwm_3, pwm_4]
         '''
+        vel_control = self.vel_control
+        steering_control = self.steering_control
+
+        pwm_1 = vel_control - steering_control
+        pwm_2 = vel_control + steering_control
+        pwm_3 = vel_control + steering_control
+        pwm_4 = vel_control - steering_control
+
+        return [pwm_1, pwm_2, pwm_3, pwm_4]
     def run(self):
         '''
         Run the main loop of the movement controller. Receive desired and
@@ -145,11 +168,14 @@ class Movement_Controller:
                 self.vel_state_pub.publish(self.measured_vel_x)
 
                 self.steering_setpoint_pub.publish(self.desired_orientation)
-                self.steering_setpoint_pub.publish(self.measured_orientation)
+                self.steering_state_pub.publish(self.measured_orientation)
 
                 #Take the control effort output from PID controller and map to
                 #PID's of individual motors
+                motor_pwms = self.map_control_efforts_to_pwms(self.vel_control, self.steering_control)
 
+                self.pwm_msg.data = motor_pwms
+                self.pwm_pub.publish(self.pwm_msg)
 
                 #100Hz
                 self.pid_timer.sleep()

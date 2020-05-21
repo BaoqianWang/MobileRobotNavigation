@@ -54,9 +54,11 @@ class Wheel_Driver:
             N/A
         '''
         #The husky robot takes values between -1 and 1. So normalize the PWM value
-        
-        self.velocity_pwm = pwm_msg.data[0] / self.max_pwm
-        self.angle_pwm = pwm_msg.data[1] / self.max_pwm
+        #Note the PWMS are mixed for the skid steer configuration as four individual
+        #PWM. Remap these to the forward velocity and steering
+        self.angle_pwm = (pwm_msg.data[2] - pwm_msg.data[1]) / self.max_pwm
+        self.velocity_pwm = (pwm_msg.data[0] + self.angle_pwm) / self.max_pwm
+
         print(self.velocity_pwm)
 
         self.vel_twist_msg.linear.x = self.velocity_pwm

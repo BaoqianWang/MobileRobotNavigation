@@ -25,7 +25,10 @@
     <param name="min_loop_frequency" value="100.0"/>
   </node>
 
+  <!--Reconfig allows for retunning of the PIDS-->
+  <node name="rqt_reconfigure" pkg="rqt_reconfigure" type="rqt_reconfigure"/>
   <!--Movement_Controller-->
   <node name="movement_controller" pkg="smile_mobile_robot" type="movement_controller.py"/>
+
 
 </launch>
