@@ -46,6 +46,9 @@ rosdep update
 rosdep install --from-paths src --ignore-src -r -y
 source devel/setup.bash
 ```
+
+Note: For some users, it maybe necessary to run 'chmod +x [Executable].py for any executable python scripts in the package.
+
 ### Launching the Gazebo Simulation
 To launch the Gazebo environment, make sure to be in the **smile_mobile_sim_ws**. The simulation will launch the Husky robot. For more on the Husky robot, see [here](https://github.com/husky).
 
