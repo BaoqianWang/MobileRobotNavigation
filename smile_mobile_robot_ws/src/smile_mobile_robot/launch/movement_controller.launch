@@ -23,8 +23,8 @@
     <param name="windup_limit" value="100"/>
     <param name="max_loop_frequency" value="100.0"/>
     <param name="min_loop_frequency" value="100.0"/>
-    <param name="angle_error" value="0"/>
-    <param name="angle_wrap" value="2.0*180.0"/>
+    <param name="angle_error" value="true"/>
+    <param name="angle_wrap" value="$(eval 2.0*180.0)"/>
   </node>
 
   <!--Reconfig allows for retunning of the PIDS-->

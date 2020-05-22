@@ -71,14 +71,23 @@ class Wheel_Driver:
 
         self.vel_twist_msg.angular.x = 0
         self.vel_twist_msg.angular.y = 0
-        #Normalize value (max turning for sim robot is 1rad/s)
-        self.vel_twist_msg.angular.z = self.angle_pwm / 255
+
+        #Scale down to make the robot not turn so fast.
+        self.vel_twist_msg.angular.z = self.angle_pwm / 10.0
 
         return
 
     def _desired_vel_subscriber_callback(self, odom_msg):
         '''
-        Callback for desired velocity (used instead of PIDs in simulator)
+        Callback for desired velocity (used instead of PIDs in simulator).
+        A PID is not necessary for driving the Husky in simulation since it
+        takes input already desired cmd_vel.
+
+        Parameters:
+            odom_msg: Odometetry message from the topic of desired odometry
+
+        Returns:
+            N/A
         '''
         self.vel_twist_msg.linear.x = odom_msg.velocity
         self.vel_twist_msg.linear.y = 0
