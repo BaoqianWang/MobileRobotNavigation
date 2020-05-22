@@ -55,9 +55,5 @@ To launch the Gazebo environment, make sure to be in the **smile_mobile_sim_ws**
 Launch robot in empty world
 ```cmd
 roslaunch smile_mobile_sim smile_empty_world.launch gui:=true
-```
-
-Launch robot in smile world
-```cmd
-roslaunch smile_mobile_sim smile_world.launch gui:=true
+roslaunch smile_mobile_robot movement_controller.launch
 ```
