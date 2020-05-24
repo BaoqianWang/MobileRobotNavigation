@@ -19,5 +19,6 @@ catkin_package(DEPENDS
 
 catkin_install_python(PROGRAMS
   src/control/motor_controller.py
+  src/sensors/encoders.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

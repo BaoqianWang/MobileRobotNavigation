@@ -84,6 +84,7 @@ class Motor_Controller:
                 self.motor_2_pub.publish(self.motor_msgs[1])
                 self.motor_3_pub.publish(self.motor_msgs[2])
                 self.motor_4_pub.publish(self.motor_msgs[3])
+                self.motor_pub_rate.sleep()
 
         except rospy.ROSInterruptException:
             pass
