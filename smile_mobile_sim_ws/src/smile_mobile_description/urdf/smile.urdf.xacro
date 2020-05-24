@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<robot name="smile" xmlns:xacro="http//www.ros.org/wiki/xacro">
+  <!--Chasis Dimension [9" 10.5" 1.32"]-->
+  <xacro:property name="chasis_width" value="0.2286"/>
+  <xacro:property name="chasis_length" value="0.2667"/>
+  <xacro:property name="chasis_height" value="0.033528"/>
+  <xacro:property name="chasis_mass" value="0.33"/>
+
+  <xacro:property name="wheel_radius" value="0.06858"/>
+  <xacro:property name="wheel_width" value="0.0254"/>
+  <xacro:property name="wheel_pos_offset" value=".0254"/>
+  <xacro:property name="wheel_mass" value="0.05"/>
+
+  <xacro:property name="pi_div_2" value="1.57075"/>
+
+  <link name="base_link"/>
+
+
+  <!-- Chasis -->
+  <link name="chasis">
+
+    <visual>
+      <geometry>
+        <box size="${chasis_width} ${chasis_length} ${chasis_height}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${chasis_width} ${chasis_length} ${chasis_height}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${chasis_mass}"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+    </inertial>
+
+  </link>
+  <joint name="base_link_to_chasis" type="fixed">
+    <parent link="base_link"/>
+    <child link="chasis"/>
+  </joint>
+
+
+  <!-- Left Front Wheel-->
+  <link name="left_front_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_left_front_wheel" type="continuous">
+    <parent link="chasis"/>
+    <child link="left_front_wheel"/>
+    <origin xyz="${-1 * chasis_width / 2} ${(chasis_length / 2) - wheel_pos_offset} 0 "/>
+  </joint>
+
+    <!-- Right Front Wheel-->
+  <link name="right_front_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_right_front_wheel" type="continuous">
+    <parent link="chasis"/>
+    <child link="right_front_wheel"/>
+    <origin xyz="${chasis_width / 2} ${(chasis_length / 2) - wheel_pos_offset} 0 "/>
+  </joint>
+
+    <!-- Left Back Wheel-->
+  <link name="left_back_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_left_back_wheel" type="continuous">
+    <parent link="chasis"/>
+    <child link="left_back_wheel"/>
+    <origin xyz="${-1 * chasis_width / 2} ${-1 *(chasis_length / 2) + wheel_pos_offset} 0 "/>
+  </joint>
+
+  <!-- Right Back Wheel -->
+  <link name="right_back_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_right_back_wheel" type="continuous">
+    <parent link="chasis"/>
+    <child link="right_back_wheel"/>
+    <origin xyz="${chasis_width / 2} ${-1*(chasis_length / 2) + wheel_pos_offset} 0 "/>
+  </joint>
+
+  <!-- Gazebo References for URDF model
+  <gazebo reference="chasis">
+    <material>Gazebo/FlatBlack</material>
+  </gazebo>
+-->
+
+<transmission name="left_front_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="left_front_wheel_motor">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_left_front_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+<transmission name="left_back_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="left_back_wheel_motor">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_left_back_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+<transmission name="right_front_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="right_front_wheel_motor">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_right_front_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+<transmission name="right_back_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="right_back_wheel_motor">
+  <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_right_back_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+
+
+<gazebo>
+  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <robotNamespace>/smile</robotNamespace>
+  </plugin>
+</gazebo>
+
+</robot>
