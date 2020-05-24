@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <robot name="smile" xmlns:xacro="http//www.ros.org/wiki/xacro">
-  <!--Chasis Dimension [9" 10.5" 1.32"]-->
-  <xacro:property name="chasis_width" value="0.2286"/>
-  <xacro:property name="chasis_length" value="0.2667"/>
-  <xacro:property name="chasis_height" value="0.033528"/>
-  <xacro:property name="chasis_mass" value="0.33"/>
+  <!--chassis Dimension [9" 10.5" 1.32"]-->
+  <xacro:property name="chassis_width" value="0.2286"/>
+  <xacro:property name="chassis_length" value="0.2667"/>
+  <xacro:property name="chassis_height" value="0.033528"/>
+  <xacro:property name="chassis_mass" value="0.33"/>
 
   <xacro:property name="wheel_radius" value="0.06858"/>
   <xacro:property name="wheel_width" value="0.0254"/>
@@ -16,30 +16,30 @@
   <link name="base_link"/>
 
 
-  <!-- Chasis -->
-  <link name="chasis">
+  <!-- chassis -->
+  <link name="chassis">
 
     <visual>
       <geometry>
-        <box size="${chasis_width} ${chasis_length} ${chasis_height}"/>
+        <box size="${chassis_width} ${chassis_length} ${chassis_height}"/>
       </geometry>
     </visual>
 
     <collision>
       <geometry>
-        <box size="${chasis_width} ${chasis_length} ${chasis_height}"/>
+        <box size="${chassis_width} ${chassis_length} ${chassis_height}"/>
       </geometry>
     </collision>
 
     <inertial>
-      <mass value="${chasis_mass}"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <mass value="${chassis_mass}"/>
+      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
     </inertial>
 
   </link>
-  <joint name="base_link_to_chasis" type="fixed">
+  <joint name="base_link_to_chassis" type="fixed">
     <parent link="base_link"/>
-    <child link="chasis"/>
+    <child link="chassis"/>
   </joint>
 
 
@@ -69,9 +69,9 @@
   </link>
 
   <joint name="base_to_left_front_wheel" type="continuous">
-    <parent link="chasis"/>
+    <parent link="chassis"/>
     <child link="left_front_wheel"/>
-    <origin xyz="${-1 * chasis_width / 2} ${(chasis_length / 2) - wheel_pos_offset} 0 "/>
+    <origin xyz="${-1 * chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
   </joint>
 
     <!-- Right Front Wheel-->
@@ -100,9 +100,9 @@
   </link>
 
   <joint name="base_to_right_front_wheel" type="continuous">
-    <parent link="chasis"/>
+    <parent link="chassis"/>
     <child link="right_front_wheel"/>
-    <origin xyz="${chasis_width / 2} ${(chasis_length / 2) - wheel_pos_offset} 0 "/>
+    <origin xyz="${chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
   </joint>
 
     <!-- Left Back Wheel-->
@@ -131,9 +131,9 @@
   </link>
 
   <joint name="base_to_left_back_wheel" type="continuous">
-    <parent link="chasis"/>
+    <parent link="chassis"/>
     <child link="left_back_wheel"/>
-    <origin xyz="${-1 * chasis_width / 2} ${-1 *(chasis_length / 2) + wheel_pos_offset} 0 "/>
+    <origin xyz="${-1 * chassis_width / 2} ${-1 *(chassis_length / 2) + wheel_pos_offset} 0 "/>
   </joint>
 
   <!-- Right Back Wheel -->
@@ -162,13 +162,13 @@
   </link>
 
   <joint name="base_to_right_back_wheel" type="continuous">
-    <parent link="chasis"/>
+    <parent link="chassis"/>
     <child link="right_back_wheel"/>
-    <origin xyz="${chasis_width / 2} ${-1*(chasis_length / 2) + wheel_pos_offset} 0 "/>
+    <origin xyz="${chassis_width / 2} ${-1*(chassis_length / 2) + wheel_pos_offset} 0 "/>
   </joint>
 
   <!-- Gazebo References for URDF model
-  <gazebo reference="chasis">
+  <gazebo reference="chassis">
     <material>Gazebo/FlatBlack</material>
   </gazebo>
 -->
@@ -224,5 +224,29 @@
     <robotNamespace>/smile</robotNamespace>
   </plugin>
 </gazebo>
+
+<!--Add colors for gazebo to each part of the vehicle-->
+<gazebo reference="chassis">
+  <material>Gazebo/Red</material>
+</gazebo>
+
+<gazebo reference="left_front_wheel">
+  <material>Gazebo/Grey</material>
+</gazebo>
+
+<gazebo reference="left_back_wheel">
+  <material>Gazebo/Grey</material>
+</gazebo>
+
+<gazebo reference="right_front_wheel">
+  <material>Gazebo/Grey</material>
+</gazebo>
+
+<gazebo reference="right_back_wheel">
+  <material>Gazebo/Grey</material>
+</gazebo>
+
+
+
 
 </robot>

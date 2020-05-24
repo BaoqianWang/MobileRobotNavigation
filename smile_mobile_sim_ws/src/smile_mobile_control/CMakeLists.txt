@@ -5,6 +5,7 @@ find_package(catkin REQUIRED COMPONENTS
     controller_manager
     joint_state_controller
     robot_state_publisher
+    rospy
 )
 
 include_directories(${catkin_INCLUDE_DIRS} include)
@@ -13,4 +14,10 @@ catkin_package(DEPENDS
   controller_manager
   joint_state_controller
   robot_state_publisher
+  rospy
+)
+
+catkin_install_python(PROGRAMS
+  src/control/motor_controller.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

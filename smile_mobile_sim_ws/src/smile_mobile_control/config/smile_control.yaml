@@ -6,23 +6,23 @@ smile:
     publish_rate: 50
 
   # Velocity (PWM) controllers
-  left_front_wheel_controller:
+  motor_1:
     type: effort_controllers/JointVelocityController
     joint: base_to_left_front_wheel
     pid: {p: 1.0, i: 0.0, d: 0.0}
 
 
-  left_back_wheel_controller:
+  motor_4:
     type: effort_controllers/JointVelocityController
     joint: base_to_left_back_wheel
     pid: {p: 1.0, i: 0.0, d: 0.0}
 
-  right_front_wheel_controller:
+  motor_2:
     type: effort_controllers/JointVelocityController
     joint: base_to_right_front_wheel
     pid: {p: 1.0, i: 0.0, d: 0.0}
 
-  right_back_wheel_controller:
+  motor_3:
     type: effort_controllers/JointVelocityController
     joint: base_to_right_back_wheel
     pid: {p: 1.0, i: 0.0, d: 0.0}

@@ -28,6 +28,11 @@
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
   <buildtool_depend>catkin</buildtool_depend>
 
+  <build_depend>rospy</build_depend>
+  <exec_depend>rospy</exec_depend>
+
+  <exec_depend>std_msgs</exec_depend>
+
   <build_depend>controller_manager</build_depend>
   <exec_depend>controller_manager</exec_depend>
 
