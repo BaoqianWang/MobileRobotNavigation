@@ -4,12 +4,12 @@
   <xacro:property name="chassis_width" value="0.2286"/>
   <xacro:property name="chassis_length" value="0.2667"/>
   <xacro:property name="chassis_height" value="0.033528"/>
-  <xacro:property name="chassis_mass" value="0.33"/>
+  <xacro:property name="chassis_mass" value="1.0"/>
 
   <xacro:property name="wheel_radius" value="0.06858"/>
   <xacro:property name="wheel_width" value="0.0254"/>
   <xacro:property name="wheel_pos_offset" value=".0254"/>
-  <xacro:property name="wheel_mass" value="0.05"/>
+  <xacro:property name="wheel_mass" value="0.5"/>
 
   <xacro:property name="pi_div_2" value="1.57075"/>
 
@@ -33,7 +33,10 @@
 
     <inertial>
       <mass value="${chassis_mass}"/>
-      <inertia ixx="0.001" ixy="0.0" ixz="0.0" iyy="0.001" iyz="0.0" izz="0.001"/>
+      <inertia
+        ixx="${chassis_mass / 12.0 * (chassis_length*chassis_length + chassis_height*chassis_height)}" ixy="0.0" ixz="0.0"
+        iyy="${chassis_mass / 12.0 * (chassis_width*chassis_width + chassis_height*chassis_height)}" iyz="0.0"
+        izz="${chassis_mass / 12.0 * (chassis_width*chassis_width + chassis_length*chassis_length)}"/>
     </inertial>
 
   </link>
@@ -62,7 +65,10 @@
 
     <inertial>
       <mass value="${wheel_mass}"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
       <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
     </inertial>
 
@@ -72,6 +78,7 @@
     <parent link="chassis"/>
     <child link="left_front_wheel"/>
     <origin xyz="${-1 * chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
   </joint>
 
     <!-- Right Front Wheel-->
@@ -93,7 +100,10 @@
 
     <inertial>
       <mass value="${wheel_mass}"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
       <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
     </inertial>
 
@@ -103,6 +113,7 @@
     <parent link="chassis"/>
     <child link="right_front_wheel"/>
     <origin xyz="${chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
   </joint>
 
     <!-- Left Back Wheel-->
@@ -124,7 +135,10 @@
 
     <inertial>
       <mass value="${wheel_mass}"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
       <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
     </inertial>
 
@@ -134,6 +148,7 @@
     <parent link="chassis"/>
     <child link="left_back_wheel"/>
     <origin xyz="${-1 * chassis_width / 2} ${-1 *(chassis_length / 2) + wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
   </joint>
 
   <!-- Right Back Wheel -->
@@ -155,7 +170,10 @@
 
     <inertial>
       <mass value="${wheel_mass}"/>
-      <inertia ixx="0.01" ixy="0.0" ixz="0.0" iyy="0.01" iyz="0.0" izz="0.01"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
       <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
     </inertial>
 
@@ -165,6 +183,17 @@
     <parent link="chassis"/>
     <child link="right_back_wheel"/>
     <origin xyz="${chassis_width / 2} ${-1*(chassis_length / 2) + wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
+  </joint>
+
+  <!--A small link to connect the IMU to the chassis-->
+  <link name="imu_link">
+  </link>
+
+  <joint name="chassis_to_imu_link" type="fixed">
+    <parent link="chassis"/>
+    <child link="imu_link"/>
+    <origin xyz="0.0 0.0 0.0"/>
   </joint>
 
   <!-- Gazebo References for URDF model
@@ -232,21 +261,49 @@
 
 <gazebo reference="left_front_wheel">
   <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
 </gazebo>
 
 <gazebo reference="left_back_wheel">
   <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
 </gazebo>
 
 <gazebo reference="right_front_wheel">
   <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
 </gazebo>
 
 <gazebo reference="right_back_wheel">
   <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
 </gazebo>
 
-
+<!--IMU Sensor Plugin-->
+<gazebo reference="imu_link">
+  <gravity>true</gravity>
+  <sensor name="imu_sensor" type="imu">
+    <always_on>true</always_on>
+    <update_rate>100</update_rate>
+    <visualize>true</visualize>
+    <topic>__default_topic__</topic>
+    <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+      <topicName>imu</topicName>
+      <bodyName>imu_link</bodyName>
+      <updateRateHZ>10.0</updateRateHZ>
+      <gaussianNoise>0.0</gaussianNoise>
+      <xyzOffset>0 0 0</xyzOffset>
+      <rpyOffset>0 0 0</rpyOffset>
+      <frameName>imu_link</frameName>
+      <initialOrientationAsReference>false</initialOrientationAsReference>
+    </plugin>
+    <pose>0 0 0 0 0 0</pose>
+  </sensor>
+</gazebo>
 
 
 </robot>

@@ -26,7 +26,7 @@ class Motor_Controller:
         rospy.init_node(node_name)
 
         #Maximum motor rotation speed (radians per second)
-        self.max_motor_speed = 5.0
+        self.max_motor_speed = 20
 
         #Publishers for each individual motor.
         #motor_1 => left_front_motor
