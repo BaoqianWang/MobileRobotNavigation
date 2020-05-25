@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>smile_mobile_robot</name>
+  <name>smile_mobile_control</name>
   <version>0.0.0</version>
   <description>
-    This package contains contents necessary for smile mobile robot.
+    This package contains the simulatio module for the smile mobile robot.
   </description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
@@ -26,31 +26,22 @@
   <!-- Authors do not have to be maintainers, but could be -->
   <!-- Example: -->
   <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
-
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>rospy</build_depend>
   <exec_depend>rospy</exec_depend>
 
-  <build_depend>roscpp</build_depend>
-  <exec_depend>roscpp</exec_depend>
-
-  <build_depend>std_msgs</build_depend>
   <exec_depend>std_msgs</exec_depend>
 
-  <build_depend>sensor_msgs</build_depend>
-  <exec_depend>sensor_msgs</exec_depend>
+  <build_depend>controller_manager</build_depend>
+  <exec_depend>controller_manager</exec_depend>
 
-  <build_depend>geometry_msgs</build_depend>
-  <exec_depend>geometry_msgs</exec_depend>
+  <build_depend>joint_state_controller</build_depend>
+  <exec_depend>joint_state_controller</exec_depend>
 
-  <build_depend>nav_msgs</build_depend>
-  <exec_depend>nav_msgs</exec_depend>
+  <build_depend>robot_state_publisher</build_depend>
+  <exec_depend>robot_state_publisher</exec_depend>
 
-  <build_depend>message_generation</build_depend>
-  <exec_depend>message_runtime</exec_depend>
-
-  <build_depend>pid</build_depend>
-  <exec_depend>pid</exec_depend>
+  <exec_depend>effort_controllers</exec_depend>
 
 </package>

@@ -10,6 +10,7 @@ Description: This python module is the wheel driver for the Husky robot used in
 import rospy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Int16MultiArray
+from smile_mobile_robot.msg import Odom
 
 class Wheel_Driver:
     """
@@ -37,9 +38,14 @@ class Wheel_Driver:
         self._zero_velocities()
 
         #Subscriber for the pwm messages (topic = pwm)
+        #Only used for steering portion in simulation. Regular cmd vels are used for velocity
         rospy.Subscriber("pwm", Int16MultiArray, self._pwm_subscriber_callback)
         self.velocity_pwm = 0
         self.angle_pwm = 0
+
+
+        rospy.Subscriber("/odom/desired", Odom, self._desired_vel_subscriber_callback)
+        #self.max_pwm = 255.0
 
 
     def _pwm_subscriber_callback(self, pwm_msg):
@@ -51,16 +57,41 @@ class Wheel_Driver:
         Returns:
             N/A
         '''
-        self.velocity_pwm = pwm_msg.data[0]
-        self.angle_pwm = pwm_msg.data[1]
+        #The husky robot takes values between -1 and 1. So normalize the PWM value
+        #Note the PWMS are mixed for the skid steer configuration as four individual
+        #PWM. Remap these to the forward velocity and steering
+        self.angle_pwm = (pwm_msg.data[1] - pwm_msg.data[0]) / 2.0
 
-        self.vel_twist_msg.linear.x = self.velocity_pwm
-        self.vel_twist_msg.linear.y = 0
-        self.vel_twist_msg.linear.z = 0
+        #self.velocity_pwm = (pwm_msg.data[0] + self.angle_pwm) / (self.max_pwm)
+
+
+        #self.vel_twist_msg.linear.x = self.velocity_pwm
+        #self.vel_twist_msg.linear.y = 0
+        #self.vel_twist_msg.linear.z = 0
 
         self.vel_twist_msg.angular.x = 0
         self.vel_twist_msg.angular.y = 0
-        self.vel_twist_msg.angular.z = self.angle_pwm
+
+        #Scale down to make the robot not turn so fast.
+        self.vel_twist_msg.angular.z = self.angle_pwm / 10.0
+
+        return
+
+    def _desired_vel_subscriber_callback(self, odom_msg):
+        '''
+        Callback for desired velocity (used instead of PIDs in simulator).
+        A PID is not necessary for driving the Husky in simulation since it
+        takes input already desired cmd_vel.
+
+        Parameters:
+            odom_msg: Odometetry message from the topic of desired odometry
+
+        Returns:
+            N/A
+        '''
+        self.vel_twist_msg.linear.x = odom_msg.velocity
+        self.vel_twist_msg.linear.y = 0
+        self.vel_twist_msg.linear.z = 0
 
         return
 

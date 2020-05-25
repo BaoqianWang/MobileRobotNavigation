@@ -7,6 +7,7 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     gazebo_ros
     husky_gazebo
+    smile_mobile_robot
 )
 
 find_package(gazebo REQUIRED)
@@ -21,6 +22,7 @@ catkin_package(DEPENDS
     geometry_msgs
     gazebo_ros
     husky_gazebo
+    smile_mobile_robot
 )
 
 install(DIRECTORY
@@ -30,5 +32,6 @@ install(DIRECTORY
 
 catkin_install_python(PROGRAMS
     src/wheel_driver.py
+    src/cvt_odom_data.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

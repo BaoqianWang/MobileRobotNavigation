@@ -1,0 +1,377 @@
+<?xml version="1.0"?>
+<robot name="smile" xmlns:xacro="http//www.ros.org/wiki/xacro">
+  <!--chassis Dimension [9" 10.5" 1.32"]-->
+  <xacro:property name="chassis_width" value="0.2286"/>
+  <xacro:property name="chassis_length" value="0.2667"/>
+  <xacro:property name="chassis_height" value="0.033528"/>
+  <xacro:property name="chassis_mass" value="1.0"/>
+
+  <xacro:property name="wheel_radius" value="0.06858"/>
+  <xacro:property name="wheel_width" value="0.0254"/>
+  <xacro:property name="wheel_pos_offset" value=".0254"/>
+  <xacro:property name="wheel_mass" value="0.5"/>
+
+  <xacro:property name="pi_div_2" value="1.57075"/>
+
+  <link name="base_link"/>
+
+
+  <!-- chassis -->
+  <link name="chassis">
+
+    <visual>
+      <geometry>
+        <box size="${chassis_width} ${chassis_length} ${chassis_height}"/>
+      </geometry>
+    </visual>
+
+    <collision>
+      <geometry>
+        <box size="${chassis_width} ${chassis_length} ${chassis_height}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <mass value="${chassis_mass}"/>
+      <inertia
+        ixx="${chassis_mass / 12.0 * (chassis_length*chassis_length + chassis_height*chassis_height)}" ixy="0.0" ixz="0.0"
+        iyy="${chassis_mass / 12.0 * (chassis_width*chassis_width + chassis_height*chassis_height)}" iyz="0.0"
+        izz="${chassis_mass / 12.0 * (chassis_width*chassis_width + chassis_length*chassis_length)}"/>
+    </inertial>
+
+  </link>
+  <joint name="base_link_to_chassis" type="fixed">
+    <parent link="base_link"/>
+    <child link="chassis"/>
+  </joint>
+
+
+  <!-- Left Front Wheel-->
+  <link name="left_front_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_left_front_wheel" type="continuous">
+    <parent link="chassis"/>
+    <child link="left_front_wheel"/>
+    <origin xyz="${-1 * chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
+  </joint>
+
+    <!-- Right Front Wheel-->
+  <link name="right_front_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_right_front_wheel" type="continuous">
+    <parent link="chassis"/>
+    <child link="right_front_wheel"/>
+    <origin xyz="${chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
+  </joint>
+
+    <!-- Left Back Wheel-->
+  <link name="left_back_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_left_back_wheel" type="continuous">
+    <parent link="chassis"/>
+    <child link="left_back_wheel"/>
+    <origin xyz="${-1 * chassis_width / 2} ${-1 *(chassis_length / 2) + wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
+  </joint>
+
+  <!-- Right Back Wheel -->
+  <link name="right_back_wheel">
+
+    <visual>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </visual>
+
+    <collision>
+      <geometry>
+        <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
+      </geometry>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </collision>
+
+    <inertial>
+      <mass value="${wheel_mass}"/>
+      <inertia
+        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
+        iyy="0.01" iyz="0.0"
+        izz="0.01"/>
+      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+    </inertial>
+
+  </link>
+
+  <joint name="base_to_right_back_wheel" type="continuous">
+    <parent link="chassis"/>
+    <child link="right_back_wheel"/>
+    <origin xyz="${chassis_width / 2} ${-1*(chassis_length / 2) + wheel_pos_offset} 0 "/>
+    <dynamics damping="1.5"/>
+  </joint>
+
+
+
+  <!-- Gazebo References for URDF model
+  <gazebo reference="chassis">
+    <material>Gazebo/FlatBlack</material>
+  </gazebo>
+-->
+
+<transmission name="left_front_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="left_front_wheel_motor">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_left_front_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+<transmission name="left_back_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="left_back_wheel_motor">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_left_back_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+<transmission name="right_front_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="right_front_wheel_motor">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_right_front_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+<transmission name="right_back_wheel_trans">
+  <type>transmission_interface/SimpleTransmission</type>
+  <actuator name="right_back_wheel_motor">
+  <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  <mechanicalReduction>1</mechanicalReduction>
+  </actuator>
+  <joint name="base_to_right_back_wheel">
+    <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+  </joint>
+</transmission>
+
+
+
+<gazebo>
+  <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+    <robotNamespace>/smile</robotNamespace>
+  </plugin>
+</gazebo>
+
+<!--Add colors for gazebo to each part of the vehicle-->
+<gazebo reference="chassis">
+  <material>Gazebo/Red</material>
+</gazebo>
+
+<gazebo reference="left_front_wheel">
+  <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
+</gazebo>
+
+<gazebo reference="left_back_wheel">
+  <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
+</gazebo>
+
+<gazebo reference="right_front_wheel">
+  <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
+</gazebo>
+
+<gazebo reference="right_back_wheel">
+  <material>Gazebo/Grey</material>
+  <mu1>0.5</mu1>
+  <mu2>0.5</mu2>
+</gazebo>
+
+<!--A small link to connect the IMU to the chassis-->
+<link name="imu_link">
+</link>
+
+<joint name="chassis_to_imu_link" type="fixed">
+  <parent link="chassis"/>
+  <child link="imu_link"/>
+  <origin xyz="0.0 0.0 0.0"/>
+</joint>
+
+<!--IMU Sensor Plugin-->
+<gazebo reference="imu_link">
+  <gravity>true</gravity>
+  <sensor name="imu_sensor" type="imu">
+    <always_on>true</always_on>
+    <update_rate>100</update_rate>
+    <visualize>true</visualize>
+    <topic>__default_topic__</topic>
+    <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
+      <topicName>imu</topicName>
+      <bodyName>imu_link</bodyName>
+      <updateRateHZ>10.0</updateRateHZ>
+      <gaussianNoise>0.0</gaussianNoise>
+      <xyzOffset>0 0 0</xyzOffset>
+      <rpyOffset>0 0 0</rpyOffset>
+      <frameName>imu_link</frameName>
+      <initialOrientationAsReference>false</initialOrientationAsReference>
+    </plugin>
+    <pose>0 0 0 0 0 0</pose>
+  </sensor>
+</gazebo>
+
+<!--Camera sensor-->
+<link name="camera_link">
+
+  <collision>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.05 0.02 0.02"/>
+    </geometry>
+  </collision>
+
+  <visual>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+    <geometry>
+      <box size="0.05 0.02 0.02"/>
+    </geometry>
+    <material name="black"/>
+  </visual>
+</link>
+
+<joint name="chassis_to_camera_link" type="fixed">
+  <axis xyz="0 0 0"/>
+  <origin xyz="0 ${chassis_length/2.0} ${chassis_height/2.0 + 0.01}" rpy="0 0 1.57"/>
+  <parent link="chassis"/>
+  <child link="camera_link"/>
+</joint>
+
+<gazebo reference="camera_link">
+   <sensor type="camera" name="camera1">
+     <update_rate>30.0</update_rate>
+     <camera name="head">
+       <horizontal_fov>1.3962634</horizontal_fov>
+       <image>
+         <width>800</width>
+         <height>800</height>
+         <format>R8G8B8</format>
+       </image>
+       <clip>
+         <near>0.02</near>
+         <far>300</far>
+       </clip>
+       <noise>
+         <type>gaussian</type>
+         <!-- Noise is sampled independently per pixel on each frame.
+              That pixel's noise value is added to each of its color
+              channels, which at that point lie in the range [0,1]. -->
+         <mean>0.0</mean>
+         <stddev>0.007</stddev>
+       </noise>
+     </camera>
+     <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+       <alwaysOn>true</alwaysOn>
+       <updateRate>0.0</updateRate>
+       <cameraName>smile/camera1</cameraName>
+       <imageTopicName>image_raw</imageTopicName>
+       <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+       <frameName>camera_link</frameName>
+       <hackBaseline>0.07</hackBaseline>
+       <distortionK1>0.0</distortionK1>
+       <distortionK2>0.0</distortionK2>
+       <distortionK3>0.0</distortionK3>
+       <distortionT1>0.0</distortionT1>
+       <distortionT2>0.0</distortionT2>
+     </plugin>
+   </sensor>
+   
+ </gazebo>
+
+</robot>

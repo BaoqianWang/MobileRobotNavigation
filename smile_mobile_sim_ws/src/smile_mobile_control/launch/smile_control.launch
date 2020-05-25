@@ -1,0 +1,21 @@
+<launch>
+  <!--Load the joint controller configurations from YAML file to parameter server-->
+  <rosparam file="$(find smile_mobile_control)/config/smile_control.yaml" command="load"/>
+
+  <!--Load the controllers -->
+  <node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+        output="screen" ns="/smile"
+        args="joint_state_controller motor_1 motor_2 motor_3 motor_4"/>
+
+  <!-- convert joint states to TF transforms for rviz-->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+        respawn="false" output="screen">
+      <remap from="/joint_states" to="/smile/joint_states"/>
+  </node>
+
+  <!--Launch the motor controller script to interface PWM values with motors-->
+  <node name="smile_motor_controller" pkg="smile_mobile_control" type="motor_controller.py"/>
+
+  <!--Launch the rotary encoder sensors script to read the motor velocities-->
+  <node name="smile_encoders_sensor" pkg="smile_mobile_control" type="encoders.py"/>
+</launch>

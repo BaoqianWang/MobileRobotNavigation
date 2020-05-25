@@ -1,0 +1,28 @@
+smile:
+
+  #Publish all joint states
+  joint_state_controller:
+    type: joint_state_controller/JointStateController
+    publish_rate: 50
+
+  # Velocity (PWM) controllers
+  motor_1:
+    type: effort_controllers/JointVelocityController
+    joint: base_to_left_front_wheel
+    pid: {p: 0.5, i: 0.0, d: 0.0}
+
+
+  motor_4:
+    type: effort_controllers/JointVelocityController
+    joint: base_to_left_back_wheel
+    pid: {p: 0.5, i: 0.0, d: 0.0}
+
+  motor_2:
+    type: effort_controllers/JointVelocityController
+    joint: base_to_right_front_wheel
+    pid: {p: 0.5, i: 0.0, d: 0.0}
+
+  motor_3:
+    type: effort_controllers/JointVelocityController
+    joint: base_to_right_back_wheel
+    pid: {p: 0.5, i: 0.0, d: 0.0}
