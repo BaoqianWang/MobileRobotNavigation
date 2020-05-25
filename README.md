@@ -11,18 +11,28 @@ Each of the workspaces contain ROS packages for various functions.
 ### Building the Project
 First navigate into the **smile_mobile_robot_ws** directory. Run the following
 ```cmd
-catkin_make
+catkin_init_workspace
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
+catkin_make
 source devel/setup.bash
 ```
 Now navigate into the **smile_mobile_sim_ws** directory and run the following. **NOTE**: Notice the sourcing order 
 ```cmd
-catkin_make
+catkin_init_workspace
 rosdep update
 rosdep install --from-paths src --ignore-src -r -y
+catkin_make
 source devel/setup.bash
 ```
+Now, you should added the sourcing lines to the **.bashrc** so that the correct ROS_PACKAGE_PATH is set each time a new terminal is opened. Open the files with **vim ~/.bashrc**. At the end of the file, add
+
+```cmd
+source /opt/ros/melodic/setup.bash
+source ~/smile-mobile/smile_mobile_robot_ws/devel/setup.bash
+source ~/smile-mobile/smile_mobile_sim_ws/devel/setup.bash
+```
+
 
 Note: For some users, it maybe necessary to run **chmod +x [Executable].py** for any executable python scripts in the package.
 
