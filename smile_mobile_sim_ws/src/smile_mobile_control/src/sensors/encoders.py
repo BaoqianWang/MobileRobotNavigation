@@ -25,8 +25,13 @@ class Encoders:
         '''
         rospy.init_node(node_name)
 
+        #TOPICS - This format of name space is given for the ability to simulate
+        #multiple robots
+        joint_states_topic = rospy.get_namespace() + "joint_states"
+        encoders_topic = rospy.get_namespace() + "encoders"
+
         #Subscriber to the motor joint states of the smile-mobile robot sim.
-        rospy.Subscriber('/smile/joint_states', JointState, self._joint_state_callback)
+        rospy.Subscriber(joint_states_topic, JointState, self._joint_state_callback)
 
         #Encoder data measured in rad / s
         #[motor_1, motor_2, motor_3, motor_4]
@@ -36,7 +41,7 @@ class Encoders:
         self.encoders_pub_rate = rospy.Rate(50)
 
         #Publisher to publish the motor rotary encoder data
-        self.encoders_pub = rospy.Publisher('/smile/encoders', Float32MultiArray, queue_size=10)
+        self.encoders_pub = rospy.Publisher(encoders_topic, Float32MultiArray, queue_size=10)
 
 
     def _joint_state_callback(self, joint_state_msg):

@@ -25,6 +25,13 @@ class Motor_Controller:
         '''
         rospy.init_node(node_name)
 
+        #TOPICS - This format of name space is given for the ability to simulate
+        #multiple robots
+        motor_1_command_topic = rospy.get_namespace() + "motor_1/command"
+        motor_2_command_topic = rospy.get_namespace() + "motor_2/command"
+        motor_3_command_topic = rospy.get_namespace() + "motor_3/command"
+        motor_4_command_topic = rospy.get_namespace() + "motor_4/command"
+
         #Maximum motor rotation speed (radians per second)
         self.max_motor_speed = 20
 
@@ -34,10 +41,10 @@ class Motor_Controller:
         #motor_3 => right_back_motor
         #motor_4 => left_back_motor
 
-        self.motor_1_pub = rospy.Publisher('/smile/motor_1/command', Float64, queue_size=1)
-        self.motor_2_pub = rospy.Publisher('/smile/motor_2/command', Float64, queue_size=1)
-        self.motor_3_pub = rospy.Publisher('/smile/motor_3/command', Float64, queue_size=1)
-        self.motor_4_pub = rospy.Publisher('/smile/motor_4/command', Float64, queue_size=1)
+        self.motor_1_pub = rospy.Publisher(motor_1_command_topic, Float64, queue_size=1)
+        self.motor_2_pub = rospy.Publisher(motor_2_command_topic, Float64, queue_size=1)
+        self.motor_3_pub = rospy.Publisher(motor_3_command_topic, Float64, queue_size=1)
+        self.motor_4_pub = rospy.Publisher(motor_4_command_topic, Float64, queue_size=1)
 
         self.motor_pub_rate = rospy.Rate(50) #50 Hz
 

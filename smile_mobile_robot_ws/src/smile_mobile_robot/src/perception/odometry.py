@@ -15,7 +15,7 @@ class Odometry:
     odometry of the vehicle
     """
 
-    def __init__(self, node_name="estimate_odometry"):
+    def __init__(self, node_name="raw_odometry"):
         '''
         Initialize the estimate of odometry node.
 
@@ -28,11 +28,17 @@ class Odometry:
         self.node_name = node_name
         rospy.init_node(node_name)
 
+        #TOPICS - This format of name space is given for the ability to simulate
+        #multiple robots
+        imu_data_topic = rospy.get_namespace() + "imu/data"
+        encoder_data_topic = rospy.get_namespace() + ""
+        raw_odom_topic = rospy.get_namespace() + "raw/odometry"
+
         #Subscriber to imu
-        rospy.Subscriber("/imu/data", Imu, self._imu_data_subscriber_callback)
+        rospy.Subscriber(imu_data_topic, Imu, self._imu_data_subscriber_callback)
 
         #Publisher of estimated odometry data
-        self.odom_pub = rospy.Publisher('/measured_odom', Twist, queue_size=10)
+        self.odom_pub = rospy.Publisher(raw_odom_topic, Twist, queue_size=10)
         self.odom_msg = Twist()
         self.odom_pub_rate = rospy.Rate(100)
 
