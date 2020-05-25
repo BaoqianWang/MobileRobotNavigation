@@ -8,29 +8,6 @@ The second workspace is the simulation workspace which is contained in the **smi
 
 Each of the workspaces contain ROS packages for various functions.
 
-General File Structure
-```
->smile_mobile_robot_ws
-  >src
-    >smile_mobile_robot (package)
-      >CMakeLists.txt
-      >package.xml
-      >src
-      .
-      .
-      .
-      
->smile_mobile_sim_ws
-  >src
-    >smile_mobile_sim (package)
-      >CMakeLists.txt
-      >package.xml
-      >src
-      .
-      .
-      .
-```
-
 ### Building the Project
 First navigate into the **smile_mobile_robot_ws** directory. Run the following
 ```cmd
@@ -50,10 +27,19 @@ source devel/setup.bash
 Note: For some users, it maybe necessary to run **chmod +x [Executable].py** for any executable python scripts in the package.
 
 ### Launching the Gazebo Simulation
-To launch the Gazebo environment, make sure to be in the **smile_mobile_sim_ws**. The simulation will launch the Husky robot. For more on the Husky robot, see [here](https://github.com/husky).
+To launch the Gazebo environment, make sure to be in the **smile_mobile_sim_ws**.
 
 Launch robot in empty world
 ```cmd
-roslaunch smile_mobile_sim smile_empty_world.launch gui:=true
-roslaunch smile_mobile_robot movement_controller.launch
+roslaunch smile_mobile_gazebo smile_mobile_world.launch gui:=true
+roslaunch smile_mobile_control smile_control.launch
+```
+
+The robot can be controlled by sending PWM values (range [-255, 255]) to each motor in the order motor_1, motor_2, motor_3, motor_4.
+```cmd
+//Drive the robot straight forward example
+rostopic pub /pwm std_msgs/Int16MultiArray '{data: [100, 100, 100, 100]}'
+
+//Turn the robot example
+rostopic pub /pwm std_msgs/Int16MultiArray '{data: [50, -50, -50, 50]}'
 ```
