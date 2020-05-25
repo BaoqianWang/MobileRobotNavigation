@@ -45,7 +45,7 @@ class Motor_Controller:
         self.motor_msgs = [Float64() for i in range(4)]
 
         #Subscriber for the pwm messages (topic = pwm)
-        rospy.Subscriber("pwm", Int16MultiArray, self._pwm_subscriber_callback)
+        rospy.Subscriber("/smile/pwm", Int16MultiArray, self._pwm_subscriber_callback)
 
 
     def _pwm_subscriber_callback(self, pwm_msg):
