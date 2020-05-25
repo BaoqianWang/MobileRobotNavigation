@@ -38,8 +38,8 @@ roslaunch smile_mobile_control smile_control.launch
 The robot can be controlled by sending PWM values (range [-255, 255]) to each motor in the order motor_1, motor_2, motor_3, motor_4.
 ```cmd
 //Drive the robot straight forward example
-rostopic pub /pwm std_msgs/Int16MultiArray '{data: [100, 100, 100, 100]}'
+rostopic pub /smile/pwm std_msgs/Int16MultiArray '{data: [100, 100, 100, 100]}'
 
 //Turn the robot example
-rostopic pub /pwm std_msgs/Int16MultiArray '{data: [50, -50, -50, 50]}'
+rostopic pub /smile/pwm std_msgs/Int16MultiArray '{data: [50, -50, -50, 50]}'
 ```
