@@ -19,6 +19,10 @@ add_message_files(
   Odom.msg
 )
 
+add_service_files(
+    FILES
+    pid_gains.srv
+)
 
 generate_messages(
   DEPENDENCIES

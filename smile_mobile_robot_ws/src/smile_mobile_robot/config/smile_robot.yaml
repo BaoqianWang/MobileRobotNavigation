@@ -1,10 +1,13 @@
-vehicle_params: {wheel_radius: 0.06858, vehicle_width: 0.2286}
 pid:
-  velocity:
-    k_p: 1.0
-    k_i: 0.0
-    k_d: 0.0
-  steering:
-    k_p: 1.0
-    k_i: 0.0
-    k_d: 0.0
+  steering: {k_d: 0.0, k_i: 0.0, k_p: 1.0}
+  velocity: {k_d: 0.0, k_i: 0.0, k_p: 1.0}
+rosdistro: 'melodic
+
+  '
+roslaunch:
+  uris: {host_piercedhowell_inspiron_15_7579__46759: 'http://piercedhowell-Inspiron-15-7579:46759/'}
+rosversion: '1.14.5
+
+  '
+run_id: 4ea7ddea-9fab-11ea-9730-34f64b47f658
+vehicle_params: {vehicle_width: 0.2286, wheel_radius: 0.06858}

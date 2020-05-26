@@ -13,6 +13,7 @@ from nav_msgs.msg import Odometry
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import time
 from pid_controller import PID_Controller
+from smile_mobile_robot.srv import pid_gains, pid_gainsResponse
 
 class Movement_Controller:
     """
@@ -70,7 +71,7 @@ class Movement_Controller:
         Returns:
             N/A
         '''
-        
+
         pid_params = rospy.get_param("/pid")
         velocity_pid_params = pid_params['velocity']
         steering_pid_params = pid_params['steering']
@@ -94,8 +95,31 @@ class Movement_Controller:
                                                       max_control_effort=100,
                                                       min_control_effort=-100,
                                                       angle_error=True)
-    return
+        #Initialize the service for updating the pid controller gains
+        rospy.Service('update_pid_gains', pid_gains, self.handle_pid_gains_update)
 
+        return
+
+    def handle_pid_gains_update(self, req):
+        '''
+        Handler function for when a PID gain upate is requested. This will update
+        the PIDS in the parameter server.
+
+        Parameters:
+            reg: The request message containing the desired gains
+        Returns:
+            N/A
+        '''
+        self.velocity_pid_controller.set_gains(req.velocity_k_p, req.velocity_k_i, req.velocity_k_d)
+        self.steering_pid_controller.set_gains(req.steering_k_p, req.steering_k_i, req.steering_k_d)
+
+        #Update the parameter server on the correct pid values
+        rospy.set_param("/pid/velocity", {'k_p': req.velocity_k_p, 'k_i': req.velocity_k_i, 'k_d': req.velocity_k_d})
+        rospy.set_param("/pid/steering", {'k_p': req.steering_k_p, 'k_i': req.steering_k_i, 'k_d': req.steering_k_d})
+
+
+        return pid_gainsResponse()
+        
     def _odom_data_callback(self, odom_msg):
         '''
         Callback function for the measured odometry data estimated.
