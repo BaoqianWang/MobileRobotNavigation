@@ -294,7 +294,7 @@
     <visualize>true</visualize>
     <topic>__default_topic__</topic>
     <plugin filename="libgazebo_ros_imu_sensor.so" name="imu_plugin">
-      <topicName>imu</topicName>
+      <topicName>smile/imu</topicName>
       <bodyName>imu_link</bodyName>
       <updateRateHZ>10.0</updateRateHZ>
       <gaussianNoise>0.0</gaussianNoise>
@@ -371,7 +371,7 @@
        <distortionT2>0.0</distortionT2>
      </plugin>
    </sensor>
-   
+
  </gazebo>
 
 </robot>
