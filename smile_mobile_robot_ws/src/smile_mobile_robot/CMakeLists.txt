@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     nav_msgs
     message_generation
-    pid
 )
 
 add_message_files(
@@ -31,7 +30,7 @@ generate_messages(
 
 catkin_package(
     CATKIN_DEPENDS roscpp
-    rospy std_msgs message_runtime pid
+    rospy std_msgs message_runtime
     sensor_msgs geometry_msgs nav_msgs
 )
 

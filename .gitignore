@@ -7,3 +7,4 @@ smile_mobile_robot_ws/src/CMakeLists.txt
 smile_mobile_sim_ws/src/CMakeLists.txt
 smile_mobile_robot_ws/log/
 smile_mobile_sim_ws/log/
+*.pyc

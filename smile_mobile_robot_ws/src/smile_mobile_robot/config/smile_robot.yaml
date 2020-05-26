@@ -1,1 +1,10 @@
 vehicle_params: {wheel_radius: 0.06858, vehicle_width: 0.2286}
+pid:
+  velocity:
+    k_p: 1.0
+    k_i: 0.0
+    k_d: 0.0
+  steering:
+    k_p: 1.0
+    k_i: 0.0
+    k_d: 0.0

@@ -1,13 +1,17 @@
 <launch>
 
-  <!--Robot configuration file-->
+  <!--Robot configuration file (must be loaded to run the following)-->
   <rosparam file="$(find smile_mobile_robot)/config/smile_robot.yaml" command="load"/>
 
-  <!--Launch the Odometry estimators-->
+  <!--Launch the Odometry estimator and movement controller-->
   <group ns="smile">
     <node name="raw_odometry" pkg="smile_mobile_robot" type="raw_odometry.py"/>
+
+    <node name="movement_controller" pkg="smile_mobile_robot" type="movement_controller.py"/>
   </group>
 
-  <!--Launch the movement controller for PID control-->
+  <!--Launch the movement controller for PID control
   <include file="$(find smile_mobile_robot)/launch/movement_controller.launch"/>
+  -->
+
 </launch>
