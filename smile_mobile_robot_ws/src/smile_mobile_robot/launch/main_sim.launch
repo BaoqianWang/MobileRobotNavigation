@@ -1,4 +1,9 @@
 <launch>
+  <!--Launch the gazebo simulation of smile mobile robot-->
+  <include file="$(find smile_mobile_gazebo)/launch/smile_mobile_world.launch">
+    <arg name="gui" value="true"/>
+  </include>
+  <include file="$(find smile_mobile_control)/launch/smile_control.launch"/>
 
   <!--Robot configuration file (must be loaded to run the following)-->
   <rosparam file="$(find smile_mobile_robot)/config/smile_robot.yaml" command="load"/>

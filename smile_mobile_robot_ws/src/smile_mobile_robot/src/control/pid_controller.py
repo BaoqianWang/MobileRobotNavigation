@@ -69,6 +69,9 @@ class PID_Controller():
         Returns:
             N/A
         '''
+        self.k_p = k_p
+        self.k_i = k_i
+        self.k_d = k_d
 
     def bound_value(self, value, min, max):
         '''
