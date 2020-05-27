@@ -13,9 +13,12 @@
       <remap from="/joint_states" to="/smile/joint_states"/>
   </node>
 
+  <!--Launch the following nodes under the namespace-->
+  <group ns="smile">
   <!--Launch the motor controller script to interface PWM values with motors-->
   <node name="smile_motor_controller" pkg="smile_mobile_control" type="motor_controller.py"/>
 
   <!--Launch the rotary encoder sensors script to read the motor velocities-->
   <node name="smile_encoders_sensor" pkg="smile_mobile_control" type="encoders.py"/>
+</group>
 </launch>

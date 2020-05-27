@@ -6,11 +6,14 @@ Description: This python module controls the movement of the robot using
               pid controllers.
 '''
 import rospy
+import rosparam
 from geometry_msgs.msg import Twist
-from std_msgs.msg import Float64, Int16MultiArray
-from smile_mobile_robot.msg import Odom
-import tf
+from std_msgs.msg import Float64, Int16MultiArray, Float32MultiArray
+from nav_msgs.msg import Odometry
+from tf.transformations import quaternion_from_euler, euler_from_quaternion
 import time
+from pid_controller import PID_Controller
+from smile_mobile_robot.srv import pid_gains, pid_gainsResponse
 
 class Movement_Controller:
     """
@@ -30,25 +33,33 @@ class Movement_Controller:
         self.node_name = node_name
         rospy.init_node(node_name)
 
-        #Initialize subscriber for measured_odometry
-        rospy.Subscriber("/odom/measured", Odom, self._measured_odom_data_callback)
+        #TOPICS - This format of name space is given for ability to simulate multiple
+        #by providing different names
+
+        measured_odom_topic = rospy.get_namespace() + "raw/odometry"
+        pwm_topic = rospy.get_namespace() + "pwm"
+        desired_movement_topic = rospy.get_namespace() + "desired/movement"
+
+        #Initialize subscriber for raw odometry
+        rospy.Subscriber(measured_odom_topic, Odometry, self._odom_data_callback)
 
         #Initialize subscriber for desired_odometry
-        rospy.Subscriber("/odom/desired", Odom, self._desired_odom_data_callback)
+        rospy.Subscriber(desired_movement_topic, Float32MultiArray, self._desired_movement_callback)
 
+        #Initialize PWM controllers
         self._initialize_pid_controlers()
 
-        self.pwm_pub = rospy.Publisher("/pwm", Int16MultiArray, queue_size=10)
+        self.pwm_pub = rospy.Publisher(pwm_topic, Int16MultiArray, queue_size=10)
         self.pwm_msg = Int16MultiArray()
 
         self.pid_timer = rospy.Rate(100) #100Hz
 
         #Initialize publisher for writing PWM
-        self.measured_vel_x = 0.0
-        self.desired_vel_x = 0.0
+        self.measured_velocity = 0.0
+        self.desired_velocity= 0.0
         self.measured_orientation = 0.0
         self.desired_orientation = 0.0
-        self.vel_control = 0.0
+        self.velocity_control = 0.0
         self.steering_control = 0.0
 
     def _initialize_pid_controlers(self):
@@ -60,74 +71,100 @@ class Movement_Controller:
         Returns:
             N/A
         '''
-        #Inialize the communication with the velocity pid controller
-        #Setpoint is the desired valued
-        self.vel_setpoint_pub = rospy.Publisher('/velocity/setpoint', Float64, queue_size=10)
-        self.steering_setpoint_pub = rospy.Publisher('/steering/setpoint', Float64, queue_size=10)
 
-        #State is the measured value
-        self.vel_state_pub = rospy.Publisher('/velocity/state', Float64, queue_size=10)
-        self.steering_state_pub = rospy.Publisher('/steering/state', Float64, queue_size=10)
+        pid_params = rospy.get_param("/pid")
+        velocity_pid_params = pid_params['velocity']
+        steering_pid_params = pid_params['steering']
 
-        #Subscribe to the control output from the PID controllers
-        rospy.Subscriber('/velocity/control_effort', Float64, self._velocity_control_callback)
-        rospy.Subscriber('/steering/control_effort', Float64, self._steering_control_callback)
+        velocity_k_p = velocity_pid_params['k_p']
+        velocity_k_i = velocity_pid_params['k_i']
+        velocity_k_d = velocity_pid_params['k_d']
 
-    def _velocity_control_callback(self, control_effort_msg):
+        self.velocity_pid_controller = PID_Controller(k_p=velocity_k_p,
+                                                      k_i=velocity_k_i,
+                                                      k_d=velocity_k_d,
+                                                      integral_min=-10,
+                                                      integral_max=10,
+                                                      max_control_effort=255,
+                                                      min_control_effort=-255)
+
+        steering_k_p = steering_pid_params['k_p']
+        steering_k_i = steering_pid_params['k_i']
+        steering_k_d = steering_pid_params['k_d']
+        self.steering_pid_controller = PID_Controller(k_p=steering_k_p,
+                                                      k_i=steering_k_i,
+                                                      k_d=steering_k_d,
+                                                      max_control_effort=100,
+                                                      min_control_effort=-100,
+                                                      integral_min=-10,
+                                                      integral_max=10,
+                                                      angle_error=True)
+                                                      
+        #Initialize the service for updating the pid controller gains
+        rospy.Service('update_pid_gains', pid_gains, self.handle_pid_gains_update)
+
+        return
+
+    def handle_pid_gains_update(self, req):
         '''
-        Callback for the velocity control output of the pid.
+        Handler function for when a PID gain upate is requested. This will update
+        the PIDS in the parameter server.
 
         Parameters:
-            control_effort_msg: Message of type Float64
+            reg: The request message containing the desired gains
         Returns:
             N/A
         '''
-        self.vel_control = control_effort_msg.data
+        self.velocity_pid_controller.set_gains(req.velocity_k_p, req.velocity_k_i, req.velocity_k_d)
+        self.steering_pid_controller.set_gains(req.steering_k_p, req.steering_k_i, req.steering_k_d)
 
-    def _steering_control_callback(self, control_effort_msg):
-        '''
-        Callback for the steering control output of the pid.
-
-        Parameters:
-            control_effort_msg: Message of type Float64
-        Returns:
-            N/A
-        '''
-        self.steering_control = control_effort_msg.data
+        #Update the parameter server on the correct pid values
+        rospy.set_param("/pid/velocity", {'k_p': req.velocity_k_p, 'k_i': req.velocity_k_i, 'k_d': req.velocity_k_d})
+        rospy.set_param("/pid/steering", {'k_p': req.steering_k_p, 'k_i': req.steering_k_i, 'k_d': req.steering_k_d})
 
 
-    def _measured_odom_data_callback(self, measured_odom_msg):
+        return pid_gainsResponse()
+
+    def _odom_data_callback(self, odom_msg):
         '''
         Callback function for the measured odometry data estimated.
         Unpack the data
 
         Parameters:
-            measured_odom_msg: Odometry data message type geometry_msgs/Twist
+            measured_odom_msg: Odometry data message type nav_msgs/Odometry
         Returns:
             N/A
         '''
-        self.measured_odom = measured_odom_msg
-        self.measured_vel_x = self.measured_odom.velocity
+        self.measured_odom = odom_msg
+        self.measured_velocity= self.measured_odom.twist.twist.linear.x
 
         #Orientation is the direction the robot faces
-        self.measured_orientation = self.measured_odom.orientation.yaw
+        #Convert from quaternion to euler
+        quaternion = [self.measured_odom.pose.pose.orientation.x,
+                      self.measured_odom.pose.pose.orientation.y,
+                      self.measured_odom.pose.pose.orientation.z,
+                      self.measured_odom.pose.pose.orientation.w]
+        [roll, pitch, yaw] = euler_from_quaternion(quaternion)
+
+        self.measured_orientation = yaw
 
 
-    def _desired_odom_data_callback(self, measured_odom_msg):
+    def _desired_movement_callback(self, desired_movement_msg):
         '''
-        Callback function for the desired odometry for the robot to hold.
-        Unpack the data
+        Callback function for the desired movement for the robot to hold. The
+        message contains the desired velocity and orientation.
 
         Parameters:
-            desired_odom_msg: Odometry data message type geometry_msgs/Twist
+            desired_movement_msg: The desired velocity (m/s) and orientation (rad/s).
+                                  The message is of type std_msgs/Float32MultiArray.
+                                  [desired_velocity, desired_orientation]
         Returns:
             N/A
         '''
-        self.desired_odom = measured_odom_msg
-        self.desired_vel_x = self.desired_odom.velocity
+        self.desired_velocity = desired_movement_msg.data[0]
 
         #Orientation is the direction the robot faces
-        self.desired_orientation = self.desired_odom.orientation.yaw
+        self.desired_orientation = desired_movement_msg.data[1]
 
     def map_control_efforts_to_pwms(self, vel_control_effort, steering_control_effort):
         '''
@@ -140,15 +177,22 @@ class Movement_Controller:
         Returns:
             pwms: [pwm_1, pwm_2, pwm_3, pwm_4]
         '''
-        vel_control = self.vel_control
-        steering_control = self.steering_control
+        vel_control = vel_control_effort
+        steering_control = steering_control_effort
 
         pwm_1 = vel_control - steering_control
         pwm_2 = vel_control + steering_control
         pwm_3 = vel_control + steering_control
         pwm_4 = vel_control - steering_control
 
-        return [pwm_1, pwm_2, pwm_3, pwm_4]
+        pwms = [pwm_1, pwm_2, pwm_3, pwm_4]
+        for i in range(4):
+            if(pwms[i] < -255):
+                pwms[i] = -255
+            elif(pwms[i] > 255):
+                pwms[i] = 255
+        return pwms
+
     def run(self):
         '''
         Run the main loop of the movement controller. Receive desired and
@@ -159,20 +203,22 @@ class Movement_Controller:
         Returns:
             N/A
         '''
+        #Publish errror for debug
+        error_pub = rospy.Publisher('pid_errors', Float32MultiArray, queue_size=1)
+        error_msg = Float32MultiArray()
 
         try:
             while not rospy.is_shutdown():
 
-                #Publish to the PID Controllers
-                self.vel_setpoint_pub.publish(self.desired_vel_x)
-                self.vel_state_pub.publish(self.measured_vel_x)
-
-                self.steering_setpoint_pub.publish(self.desired_orientation)
-                self.steering_state_pub.publish(self.measured_orientation)
-
                 #Take the control effort output from PID controller and map to
-                #PID's of individual motors
-                motor_pwms = self.map_control_efforts_to_pwms(self.vel_control, self.steering_control)
+                #PID's of individual motor
+                self.velocity_control, velocity_error = self.velocity_pid_controller.update(self.desired_velocity, self.measured_velocity)
+                self.steering_control, steering_error = self.steering_pid_controller.update(self.desired_orientation, self.measured_orientation)
+                error_msg.data = [velocity_error, steering_error]
+                error_pub.publish(error_msg)
+
+                motor_pwms = self.map_control_efforts_to_pwms(self.velocity_control, self.steering_control)
+
 
                 self.pwm_msg.data = motor_pwms
                 self.pwm_pub.publish(self.pwm_msg)

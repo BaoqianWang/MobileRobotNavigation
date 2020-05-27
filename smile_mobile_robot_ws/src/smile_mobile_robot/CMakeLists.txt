@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS
     geometry_msgs
     nav_msgs
     message_generation
-    pid
 )
 
 add_message_files(
@@ -20,6 +19,10 @@ add_message_files(
   Odom.msg
 )
 
+add_service_files(
+    FILES
+    pid_gains.srv
+)
 
 generate_messages(
   DEPENDENCIES
@@ -31,7 +34,7 @@ generate_messages(
 
 catkin_package(
     CATKIN_DEPENDS roscpp
-    rospy std_msgs message_runtime pid
+    rospy std_msgs message_runtime
     sensor_msgs geometry_msgs nav_msgs
 )
 
@@ -41,7 +44,7 @@ include_directories(
 
 catkin_install_python(PROGRAMS
     src/control/movement_controller.py
-    src/perception/odometry.py
-    src/helpers/send_desired_odom.py
+    src/perception/raw_odometry.py
+    src/helpers/send_desired_movement.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

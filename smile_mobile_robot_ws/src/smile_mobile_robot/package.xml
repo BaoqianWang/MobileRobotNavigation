@@ -50,7 +50,5 @@
   <build_depend>message_generation</build_depend>
   <exec_depend>message_runtime</exec_depend>
 
-  <build_depend>pid</build_depend>
-  <exec_depend>pid</exec_depend>
 
 </package>
