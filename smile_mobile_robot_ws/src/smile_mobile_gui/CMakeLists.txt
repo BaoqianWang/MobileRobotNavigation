@@ -22,7 +22,7 @@ catkin_package(
 catkin_python_setup()
 
 #Provide ability to rosrun the gui
-install(PROGRAMS scripts/smile_mobile_gui
+install(PROGRAMS scripts/PID_Tuner scripts/Position_Plotter
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY
@@ -30,5 +30,6 @@ install(DIRECTORY
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 install(FILES
-        plugin.xml
+        plugin_pid_tuner.xml
+        plugin_position_plotter.xml
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
