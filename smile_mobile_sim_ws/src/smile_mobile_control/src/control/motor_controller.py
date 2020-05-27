@@ -33,7 +33,7 @@ class Motor_Controller:
         motor_4_command_topic = rospy.get_namespace() + "motor_4/command"
 
         #Maximum motor rotation speed (radians per second)
-        self.max_motor_speed = 20
+        self.max_motor_speed = 30.0
 
         #Publishers for each individual motor.
         #motor_1 => left_front_motor

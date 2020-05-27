@@ -83,6 +83,8 @@ class Movement_Controller:
         self.velocity_pid_controller = PID_Controller(k_p=velocity_k_p,
                                                       k_i=velocity_k_i,
                                                       k_d=velocity_k_d,
+                                                      integral_min=-10,
+                                                      integral_max=10,
                                                       max_control_effort=255,
                                                       min_control_effort=-255)
 
@@ -94,7 +96,10 @@ class Movement_Controller:
                                                       k_d=steering_k_d,
                                                       max_control_effort=100,
                                                       min_control_effort=-100,
+                                                      integral_min=-10,
+                                                      integral_max=10,
                                                       angle_error=True)
+                                                      
         #Initialize the service for updating the pid controller gains
         rospy.Service('update_pid_gains', pid_gains, self.handle_pid_gains_update)
 
@@ -119,7 +124,7 @@ class Movement_Controller:
 
 
         return pid_gainsResponse()
-        
+
     def _odom_data_callback(self, odom_msg):
         '''
         Callback function for the measured odometry data estimated.
@@ -180,7 +185,13 @@ class Movement_Controller:
         pwm_3 = vel_control + steering_control
         pwm_4 = vel_control - steering_control
 
-        return [pwm_1, pwm_2, pwm_3, pwm_4]
+        pwms = [pwm_1, pwm_2, pwm_3, pwm_4]
+        for i in range(4):
+            if(pwms[i] < -255):
+                pwms[i] = -255
+            elif(pwms[i] > 255):
+                pwms[i] = 255
+        return pwms
 
     def run(self):
         '''
@@ -192,15 +203,22 @@ class Movement_Controller:
         Returns:
             N/A
         '''
+        #Publish errror for debug
+        error_pub = rospy.Publisher('pid_errors', Float32MultiArray, queue_size=1)
+        error_msg = Float32MultiArray()
 
         try:
             while not rospy.is_shutdown():
 
                 #Take the control effort output from PID controller and map to
                 #PID's of individual motor
-                self.velocity_control, _ = self.velocity_pid_controller.update(self.desired_velocity, self.measured_velocity)
-                self.steering_control, _ = self.steering_pid_controller.update(self.desired_orientation, self.measured_orientation)
+                self.velocity_control, velocity_error = self.velocity_pid_controller.update(self.desired_velocity, self.measured_velocity)
+                self.steering_control, steering_error = self.steering_pid_controller.update(self.desired_orientation, self.measured_orientation)
+                error_msg.data = [velocity_error, steering_error]
+                error_pub.publish(error_msg)
+
                 motor_pwms = self.map_control_efforts_to_pwms(self.velocity_control, self.steering_control)
+
 
                 self.pwm_msg.data = motor_pwms
                 self.pwm_pub.publish(self.pwm_msg)

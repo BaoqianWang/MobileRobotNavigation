@@ -21,13 +21,13 @@
 
     <visual>
       <geometry>
-        <box size="${chassis_width} ${chassis_length} ${chassis_height}"/>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
       </geometry>
     </visual>
 
     <collision>
       <geometry>
-        <box size="${chassis_width} ${chassis_length} ${chassis_height}"/>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
       </geometry>
     </collision>
 
@@ -53,23 +53,23 @@
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${wheel_width / 2} 0"/>
     </visual>
 
     <collision>
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${wheel_width / 2} 0"/>
     </collision>
 
     <inertial>
       <mass value="${wheel_mass}"/>
       <inertia
-        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
-        iyy="0.01" iyz="0.0"
+        ixx="0.01" ixy="0.0" ixz="0.0"
+        iyy="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" iyz="0.0"
         izz="0.01"/>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${wheel_width / 2} 0"/>
     </inertial>
 
   </link>
@@ -77,7 +77,8 @@
   <joint name="base_to_left_front_wheel" type="continuous">
     <parent link="chassis"/>
     <child link="left_front_wheel"/>
-    <origin xyz="${-1 * chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
+    <origin xyz="${(chassis_length / 2) - wheel_pos_offset} ${chassis_width / 2} 0 "/>
+    <axis xyz="0 1 0"/>
     <dynamics damping="1.5"/>
   </joint>
 
@@ -88,23 +89,23 @@
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${-1*wheel_width / 2} 0"/>
     </visual>
 
     <collision>
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${-1*wheel_width / 2} 0"/>
     </collision>
 
     <inertial>
       <mass value="${wheel_mass}"/>
       <inertia
-        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
-        iyy="0.01" iyz="0.0"
+        ixx="0.01" ixy="0.0" ixz="0.0"
+        iyy="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" iyz="0.0"
         izz="0.01"/>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${-1*wheel_width / 2} 0"/>
     </inertial>
 
   </link>
@@ -112,7 +113,8 @@
   <joint name="base_to_right_front_wheel" type="continuous">
     <parent link="chassis"/>
     <child link="right_front_wheel"/>
-    <origin xyz="${chassis_width / 2} ${(chassis_length / 2) - wheel_pos_offset} 0 "/>
+    <origin xyz="${(chassis_length / 2) - wheel_pos_offset} ${-1 * chassis_width / 2} 0 "/>
+    <axis xyz="0 1 0"/>
     <dynamics damping="1.5"/>
   </joint>
 
@@ -123,23 +125,23 @@
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${wheel_width / 2} 0"/>
     </visual>
 
     <collision>
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${wheel_width / 2} 0"/>
     </collision>
 
     <inertial>
       <mass value="${wheel_mass}"/>
       <inertia
-        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
-        iyy="0.01" iyz="0.0"
+        ixx="0.01" ixy="0.0" ixz="0.0"
+        iyy="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" iyz="0.0"
         izz="0.01"/>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${-1 * wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${wheel_width / 2} 0"/>
     </inertial>
 
   </link>
@@ -147,7 +149,8 @@
   <joint name="base_to_left_back_wheel" type="continuous">
     <parent link="chassis"/>
     <child link="left_back_wheel"/>
-    <origin xyz="${-1 * chassis_width / 2} ${-1 *(chassis_length / 2) + wheel_pos_offset} 0 "/>
+    <origin xyz="${(-1* chassis_length / 2) + wheel_pos_offset} ${chassis_width / 2} 0 "/>
+    <axis xyz="0 1 0"/>
     <dynamics damping="1.5"/>
   </joint>
 
@@ -158,23 +161,23 @@
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${-1*wheel_width / 2} 0"/>
     </visual>
 
     <collision>
       <geometry>
         <cylinder length="${wheel_width}" radius="${wheel_radius}"/>
       </geometry>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${-1*wheel_width / 2} 0"/>
     </collision>
 
     <inertial>
       <mass value="${wheel_mass}"/>
       <inertia
-        ixx="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" ixy="0.0" ixz="0.0"
-        iyy="0.01" iyz="0.0"
+        ixx="0.01" ixy="0.0" ixz="0.0"
+        iyy="${wheel_mass / 2.0 * wheel_radius * wheel_radius}" iyz="0.0"
         izz="0.01"/>
-      <origin rpy="0 ${pi_div_2} 0" xyz="${wheel_width / 2} 0 0"/>
+      <origin rpy="0 ${pi_div_2} ${pi_div_2}" xyz="0 ${-1*wheel_width / 2} 0"/>
     </inertial>
 
   </link>
@@ -182,7 +185,8 @@
   <joint name="base_to_right_back_wheel" type="continuous">
     <parent link="chassis"/>
     <child link="right_back_wheel"/>
-    <origin xyz="${chassis_width / 2} ${-1*(chassis_length / 2) + wheel_pos_offset} 0 "/>
+    <origin xyz="${(-1*chassis_length / 2) + wheel_pos_offset} ${-1 * chassis_width / 2} 0 "/>
+    <axis xyz="0 1 0"/>
     <dynamics damping="1.5"/>
   </joint>
 
@@ -328,7 +332,7 @@
 
 <joint name="chassis_to_camera_link" type="fixed">
   <axis xyz="0 0 0"/>
-  <origin xyz="0 ${chassis_length/2.0} ${chassis_height/2.0 + 0.01}" rpy="0 0 1.57"/>
+  <origin xyz="${chassis_length/2.0} 0 ${chassis_height/2.0 + 0.01}" rpy="0 0 0"/>
   <parent link="chassis"/>
   <child link="camera_link"/>
 </joint>
@@ -373,5 +377,4 @@
    </sensor>
 
  </gazebo>
-
 </robot>

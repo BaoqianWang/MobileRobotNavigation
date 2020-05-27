@@ -45,7 +45,7 @@ class PID_Tuner_Generic_Widget(QWidget):
         comboboxs = [self.k_p_scale_combobox, self.k_i_scale_combobox, self.k_d_scale_combobox]
 
         for combobox in comboboxs:
-            combobox.addItems(["0.1", "1", "10", "100"])
+            combobox.addItems(["0.1", "1.0", "10.0", "100.0", "1000.0"])
             combobox.currentIndexChanged.connect(self._update_scales)
 
         self._update_scales()
