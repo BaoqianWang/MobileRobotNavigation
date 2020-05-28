@@ -20,6 +20,12 @@ class PID_Tuner(Plugin):
 
     def __init__(self, context):
         '''
+        Initialie the PID tuner
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
         '''
         #Initialize with qt_gui plugin for ros
         super(PID_Tuner, self).__init__(context)

@@ -1,8 +1,13 @@
+#!/usr/bin/env python
+'''
+Author: David Pierce Walker-Howeell<piercedhowell@gmail.com>
+Date Created: 05/26/2020
+Description: This python module is a generic pid tuner widget with sliders and
+            scale selectors for PID tunning.
+'''
 import rospy
 import rospkg
 import os
-
-
 from python_qt_binding import loadUi, QtGui, QtCore
 from python_qt_binding.QtWidgets import QWidget, QVBoxLayout, QSizePolicy, QApplication
 
@@ -13,6 +18,12 @@ class PID_Tuner_Generic_Widget(QWidget):
 
     def __init__(self):
         '''
+        Initialize the Widget
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
         '''
         super(PID_Tuner_Generic_Widget, self).__init__()
 
@@ -52,6 +63,12 @@ class PID_Tuner_Generic_Widget(QWidget):
 
     def _init_sliders(self):
         '''
+        Initialize the sliders with the correct ranges.
+
+        Parameters:
+            N/A
+        Returns:
+            N/As
         '''
         sliders = [self.k_p_slider, self.k_i_slider, self.k_d_slider]
 

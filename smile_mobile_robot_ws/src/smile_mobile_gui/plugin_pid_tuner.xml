@@ -1,12 +1,12 @@
 <library path="src">
 <class name="PID_Tuner" type="smile_mobile_gui.pid_tuner.PID_Tuner" base_class_type="rqt_gui_py::Plugin">
   <description>
-    An example Python GUI plugin to create a great user interface.
+    A Qt GUI with sliders to tune the velocity and steering PID controls for the smile mobile robot.
   </description>
   <qtgui>
     <label>PID_Tuner</label>
     <icon type="theme">system-help</icon>
-    <statustip>Great user interface to provide real value.</statustip>
+    <statustip></statustip>
   </qtgui>
 </class>
 </library>

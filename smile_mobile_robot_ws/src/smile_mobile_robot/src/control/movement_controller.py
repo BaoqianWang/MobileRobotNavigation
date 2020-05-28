@@ -99,7 +99,7 @@ class Movement_Controller:
                                                       integral_min=-10,
                                                       integral_max=10,
                                                       angle_error=True)
-                                                      
+
         #Initialize the service for updating the pid controller gains
         rospy.Service('update_pid_gains', pid_gains, self.handle_pid_gains_update)
 

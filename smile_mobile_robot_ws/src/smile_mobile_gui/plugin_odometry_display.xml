@@ -1,0 +1,12 @@
+<library path="src">
+<class name="Odometry_Display" type="smile_mobile_gui.odometry_display.Odometry_Display" base_class_type="rqt_gui_py::Plugin">
+  <description>
+    Qt Gui for displaying the odometry of the smile mobile robot
+  </description>
+  <qtgui>
+    <label>Odometry_Display</label>
+    <icon type="theme">system-help</icon>
+    <statustip></statustip>
+  </qtgui>
+</class>
+</library>
