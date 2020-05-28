@@ -37,19 +37,24 @@ source ~/smile-mobile/smile_mobile_sim_ws/devel/setup.bash
 Note: For some users, it maybe necessary to run **chmod +x [Executable].py** for any executable python scripts in the package.
 
 ### Launching the Gazebo Simulation
-To launch the Gazebo environment, make sure to be in the **smile_mobile_sim_ws**.
 
-Launch robot in empty world
+Launching the Smile Mobile Robot in Gazebo simulation can all be done by running the following launch file within the package **smile_mobile_robot**. This simulation launchs the necessary simulation artifacts for gazebo alongside the robots movement controllers and raw odometry estimation.
+
+Launch robot in empty world (will in future launch a custom world.)
 ```cmd
-roslaunch smile_mobile_gazebo smile_mobile_world.launch gui:=true
-roslaunch smile_mobile_control smile_control.launch
+roslaunch smile_mobile_robot main_sim.launch
 ```
 
-The robot can be controlled by sending PWM values (range [-255, 255]) to each motor in the order motor_1, motor_2, motor_3, motor_4.
-```cmd
-//Drive the robot straight forward example
-rostopic pub /smile/pwm std_msgs/Int16MultiArray '{data: [100, 100, 100, 100]}'
+The robot can be controlled by interfacing with the movement controller that executes velocity and steering controls. The following helper node allows to a desired velocity and steering angle. The first parameter is the velocity (current range ~[-0.5, 0.5]m/s). The second parameter is the steering angle (range [-pi, pi]).
 
-//Turn the robot example
-rostopic pub /smile/pwm std_msgs/Int16MultiArray '{data: [50, -50, -50, 50]}'
+```cmd
+rosrun smile_mobile_robot send_desired_movement --movement 0.4 1.579
 ```
+
+The position estimated by the raw odometry node can viewed with the **Position_Plotter** Qt plugin.
+
+```cmd
+rosrun smile_mobile_gui Position_Plotter
+```
+
+Note: If any issues are discovered, please set an issue inquiry in the github **issues** tab for this repo. Thanks!
