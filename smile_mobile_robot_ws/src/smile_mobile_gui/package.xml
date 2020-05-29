@@ -34,6 +34,7 @@
     <!-- Other tools can request additional information be placed here -->
     <rqt_gui plugin="${prefix}/plugin_pid_tuner.xml"/>
     <rqt_gui plugin="${prefix}/plugin_position_plotter.xml"/>
+    <rqt_gui plugin="${prefix}/plugin_odometry_display.xml"/>
   </export>
 
 </package>

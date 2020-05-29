@@ -23,6 +23,7 @@ catkin_python_setup()
 
 #Provide ability to rosrun the gui
 install(PROGRAMS scripts/PID_Tuner scripts/Position_Plotter
+                 scripts/Odometry_Display
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 install(DIRECTORY

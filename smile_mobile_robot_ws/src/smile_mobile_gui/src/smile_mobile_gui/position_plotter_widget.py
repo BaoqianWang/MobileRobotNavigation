@@ -1,3 +1,9 @@
+#!/usr/bin/env python
+'''
+Author: David Pierce Walker-Howeell<piercedhowell@gmail.com>
+Date Created: 05/25/2020
+Description: A python widget using Matplotlib to plot the x,y position of a robot.
+'''
 import os
 import rospy
 import rospkg

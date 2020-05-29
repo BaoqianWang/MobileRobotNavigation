@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+'''
+Author: David Pierce Walker-Howeell<piercedhowell@gmail.com>
+Date Created: 05/24/2020
+Description: This python module is the ros Qt plugin for plotting the x,y position
+            of the robot.
+'''
 import os
 import rospy
 import rospkg
