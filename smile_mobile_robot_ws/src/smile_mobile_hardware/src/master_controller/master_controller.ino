@@ -16,20 +16,21 @@
 #define FR_IN2 11
 #define FR_EN 12
 
-#define BR_IN1 9
-#define BR_IN2 8
-#define BR_EN 7
-
 #define FL_IN1 14
 #define FL_IN2 15
 #define FL_EN 13
 
-#define BL_IN1 18
-#define BL_IN2 19
-#define BL_EN 22  
+#define BR_IN1 8
+#define BR_IN2 9
+#define BR_EN 10
+
+#define BL_IN1 3
+#define BL_IN2 4
+#define BL_EN 5  
 
 Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
 
+char ball = 0;
 typedef union
 {
     float f;
@@ -129,12 +130,16 @@ void readWritePWM(){
       pwm4.c[1] = Serial.read();
       pwm4.c[2] = Serial.read();
       pwm4.c[3] = Serial.read();      
+      checkEnd = Serial.read();
+      if(checkEnd == endRead){
+        writePWM(pwm1.i,pwm2.i,pwm3.i,pwm4.i);
+        ball = 0x10;
+        }
+      
+      }
+      else ball = 0x22;
 
-      }
-    checkEnd = Serial.read();
-    if(checkEnd == endRead){
-      writePWM(pwm1.i,pwm2.i,pwm3.i,pwm4.i);
-      }
+    
     } 
 }
 
@@ -261,8 +266,11 @@ void loop() {
   Serial.write(loadFloat(g.gyro.z).c[1]); // 1
   Serial.write(loadFloat(g.gyro.z).c[2]); // 1
   Serial.write(loadFloat(g.gyro.z).c[3]); // 1
+
   
   Serial.write(endDataWrite); // 1 byte
+
+  delay(10);
 
 }
 
