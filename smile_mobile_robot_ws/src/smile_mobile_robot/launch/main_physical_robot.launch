@@ -1,0 +1,11 @@
+<launch>
+  <!--Physical robot configurations file-->
+  <rosparam file="$(find smile_mobile_robot)/config/smile_physical_robot.yaml" command="load"/>
+
+  <group ns="smile">
+    <node name="raw_odometry" pkg="smile_mobile_robot" type="raw_odometry.py"/>
+    
+    <node name="movement_controller" pkg="smile_mobile_robot" type="movement_controller.py"/>
+  </group>
+  
+</launch>
