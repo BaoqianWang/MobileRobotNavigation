@@ -10,13 +10,13 @@ from sensor_msgs.msg import Imu
 rospy.init_node("ControlNode")
 pubIMURaw = rospy.Publisher('imuRaw', Imu, queue_size=10)
 #pubEncoder = rospy.Publisher('encoderArray', smile_float_array, queue_size = 10)
-pwmSub = rospy.Subscriber('pwm', smile_pwm, writePWM, )
+#pwmSub = rospy.Subscriber('pwm', smile_pwm, writePWM, )
 imuMsg = Imu()
 #encoderMsg = smile_float_array() 
 
-ser = serial.Serial("/dev/ttyUSB0",9600)
+ser = serial.Serial("/dev/ttyACM0",9600)
 
-def writePWM(pwmList)
+def writePWM(pwmList):
     startWrite = 0xDB
     endWrite = 0xBD
     ser.write(startWrite)
@@ -25,18 +25,14 @@ def writePWM(pwmList)
     ser.write(endWrite)
 
 
-while(1):
+while not rospy.is_shutdown():
     if(ser.in_waiting):
         SYNC = hex(ord(ser.read()))
         if (SYNC == '0xda'):
             motor1_freq = ser.read(4)
-            motor1_freq = struct.unpack('<f', motor1freq)
+            motor1_freq = struct.unpack('<f', motor1_freq)
             motor2_freq = ser.read(4)
-            motor2_freq = struct.unpack('<f', motor2freq)
-            motor3_freq = ser.read(4)
-            motor3_freq = struct.unpack('<f', motor3freq)
-            motor4_freq = ser.read(4)
-            motor4_freq = struct.unpack('<f', motor4freq)
+            motor2_freq = struct.unpack('<f', motor2_freq)
             accel_x = ser.read(4)
             accel_x = struct.unpack('<f', accel_x)
             accel_y = ser.read(4)
@@ -60,7 +56,8 @@ while(1):
             if (STOP == "0xad"):
                 #print([accel_x,accel_y,accel_z])
                 #print([motor1_freq,motor2_freq,motor3_freq,motor4_freq])
-                print(motor1_freq)
+                print([motor1_freq,motor2_freq])
+                
                 #encoderMsg = [motor1_freq,motor2_freq,motor3_freq,motor4_freq]
                 imuMsg.header.stamp= rospy.Time.now()
                 imuMsg.header.frame_id = 'base_link'                
@@ -73,12 +70,12 @@ while(1):
                 imuMsg.orientation.x = gyro_x #magnetometer
                 imuMsg.orientation.y = gyro_y
                 imuMsg.orientation.z = gyro_z
-                pubIMURaw.publish(imuMsg)
+                #pubIMURaw.publish(imuMsg)
                 print(imuMsg)
                 #print([mag_x,mag_y,mag_z])
                 #print([gyro_x,gyro_y,gyro_z])
                 print()
-    rospy.spin()
+    
     time.sleep(.001)   
 
 ser.close()     
