@@ -12,21 +12,21 @@
 #define SLAVE_ADDRESS_1 4
 #define SLAVE_ADDRESS_2 5
 
-#define FR_IN1 10
-#define FR_IN2 11
-#define FR_EN 12
+#define FR_IN1 12
+#define FR_IN2 13
+#define FR_EN 11
 
-#define FL_IN1 14
-#define FL_IN2 15
-#define FL_EN 13
+#define FL_IN1 6
+#define FL_IN2 7 
+#define FL_EN 5
 
 #define BR_IN1 8
-#define BR_IN2 9
-#define BR_EN 10
+#define BR_IN2 10
+#define BR_EN 9
 
-#define BL_IN1 3
-#define BL_IN2 4
-#define BL_EN 5  
+#define BL_IN1 4
+#define BL_IN2 2
+#define BL_EN 3  
 
 Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
 
@@ -58,45 +58,45 @@ void setupIMU()
 }
 
 void writePWM(int pwm1,int pwm2,int pwm3,int pwm4){
-  if(pwm1 >= 0){
+  if(pwm4 >= 0){
     digitalWrite(BL_IN1, HIGH);
     digitalWrite(BL_IN2, LOW);
-    analogWrite(BL_EN, pwm1);
+    analogWrite(BL_EN, pwm4);
     }
   else{
     digitalWrite(BL_IN1, LOW);
     digitalWrite(BL_IN2, HIGH);
-    analogWrite(BL_EN, pwm1);
+    analogWrite(BL_EN, -1*pwm4);
     }
-  if(pwm2 >= 0){
+  if(pwm1 >= 0){
     digitalWrite(FL_IN1, HIGH);
     digitalWrite(FL_IN2, LOW);
-    analogWrite(FL_EN, pwm2);
+    analogWrite(FL_EN, pwm1);
     }
   else{
     digitalWrite(FL_IN1, LOW);
     digitalWrite(FL_IN2, HIGH);
-    analogWrite(FL_EN, pwm2);
+    analogWrite(FL_EN, -1*pwm1);
     }
-  if(pwm3 >= 0){
+  if(pwm2 >= 0){
     digitalWrite(FR_IN1, HIGH);
     digitalWrite(FR_IN2, LOW);
-    analogWrite(FR_EN, pwm3);
+    analogWrite(FR_EN, pwm2);
     }
   else{
     digitalWrite(FR_IN1, LOW);
     digitalWrite(FR_IN2, HIGH);
-    analogWrite(FR_EN, pwm3);
+    analogWrite(FR_EN, -1*pwm2);
     }
-  if(pwm4 >= 0){
+  if(pwm3 >= 0){
     digitalWrite(BR_IN1, HIGH);
     digitalWrite(BR_IN2, LOW);
-    analogWrite(BR_EN, pwm4);
+    analogWrite(BR_EN, pwm3);
     }
   else{
     digitalWrite(BR_IN1, LOW);
     digitalWrite(BR_IN2, HIGH);
-    analogWrite(BR_EN, pwm4);
+    analogWrite(BR_EN, -1*pwm3);
     }
 }
 
@@ -189,6 +189,22 @@ void setup() {
   Serial.println("Found LSM9DS1 9DOF");
 
   setupIMU();
+
+  pinMode(FR_IN1, OUTPUT);
+  pinMode(FR_IN2, OUTPUT);
+  pinMode(FR_EN, OUTPUT);
+
+  pinMode(FL_IN1, OUTPUT);
+  pinMode(FL_IN2, OUTPUT);
+  pinMode(FL_EN, OUTPUT);
+
+  pinMode(BR_IN1, OUTPUT);
+  pinMode(BR_IN2, OUTPUT);
+  pinMode(BR_EN, OUTPUT);
+
+  pinMode(BL_IN1, OUTPUT);
+  pinMode(BL_IN2, OUTPUT);
+  pinMode(BL_EN, OUTPUT);
 }
 
 void loop() {

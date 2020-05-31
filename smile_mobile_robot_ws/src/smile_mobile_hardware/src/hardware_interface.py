@@ -5,7 +5,7 @@ import struct
 import rospy
 import math
 from sensor_msgs.msg import Imu
-from std_msgs.msg import Int32MultiArray, Float32MultiArray  # dont use
+from std_msgs.msg import Int16MultiArray, Float32MultiArray  # dont use
 import tf
 
 def writePWM(pwmList):
@@ -27,17 +27,20 @@ def writePWM(pwmList):
 
 
 rospy.init_node("ControlNode")
-IMU_topic = rospy.get_namespace() + 'imuRaw'
+IMU_topic = rospy.get_namespace() + 'imu'
 Enc_topic = rospy.get_namespace() + 'encoders'
 PWM_topic = rospy.get_namespace() + 'pwm'
 
 IMU_raw_pub = rospy.Publisher(IMU_topic, Imu, queue_size=10)
 encoder_pub = rospy.Publisher(Enc_topic, Float32MultiArray, queue_size = 10)
-pwm_sub = rospy.Subscriber(PWM_topic, Int32MultiArray, writePWM)
+pwm_sub = rospy.Subscriber(PWM_topic, Int16MultiArray, writePWM)
 imu_msg = Imu()
 encoder_msg = Float32MultiArray() 
 
-ser = serial.Serial("/dev/ttyACM0",9600)
+#Get the COM port of the master arduino
+com_port = rospy.get_param('/com_ports/arduino_1')
+
+ser = serial.Serial(com_port,9600)
 
 
 while not rospy.is_shutdown():
