@@ -9,6 +9,7 @@ import cv2
 import glob
 import time
 import pickle
+import matplotlib.pyplot as plt
 
 class Lane_Detector():
     '''
@@ -24,8 +25,11 @@ class Lane_Detector():
             N/A
         '''
     
-        pass
-    
+        self.sobel_x_thresh = [15, 255]
+        self.sat_thresh = [100, 255]
+        self.num_windows = 9   
+        self.margin = 150
+        self.min_lane_pix = 2
     def calibrate_camera(self, grid_count_h, grid_count_v, cal_save_file):
         '''
         Calibrate the camera to minimize distortion.
@@ -130,7 +134,22 @@ class Lane_Detector():
         #Apply the transformation matrix and warp the image
         warped = cv2.warpPerspective(img, self.M, tuple(self.dst_size))
         return warped
-    
+    def _inv_perspective_warp(self, img):
+
+        '''
+        Change the perspective of the image to mimic a top down view of the road.
+
+        Parameters:
+            img: The image to change the perspective on. Warp the image.
+        Returns:
+            warped: The warped image.
+        '''
+         
+        #Apply the transformation matrix and warp the image
+        warped = cv2.warpPerspective(img, np.linalg.inv(self.M), tuple(self.dst_size))
+        return warped
+
+   
     def _initialize_perspective_warp(self, src_size, dst_size, src_roi):
         '''
         Initilize the region of interest for the lane detector to look for lanes.
@@ -151,7 +170,6 @@ class Lane_Detector():
         dst = np.float32(src_size) * dst_roi
         src = np.float32(src_size) * src_roi
         self.src_roi = src_roi
-        print(src)
 
         #Get the transformation matrix to switch perspective on the image.
         self.M = cv2.getPerspectiveTransform(src, dst)
@@ -181,11 +199,13 @@ class Lane_Detector():
 
         return roi_img
 
-    def detect(self, img, undistort=False):
+    def binarize_img(self, img, undistort=False):
         '''
-        Pipeline to do lane detection. 
+        Binarizes the RGB lane image using sobel filtering on the HLS 
+        color format.
 
         Parameters:
+            img: 
             
         Returns:
         '''
@@ -194,51 +214,205 @@ class Lane_Detector():
         
         #Convert the image to HLS space and seperate out V channel
         hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
-        l_channel = hls[:, :, 1]
-        s_channel = hls[:, :, 2]
-        h_channel = hls[:, :, 0]
+        l_channel = hls[:, :, 1] #Lightness
+        s_channel = hls[:, :, 2] #Saturation
+        h_channel = hls[:, :, 0] #Hue
 
         #Take the sobel in the vertical (x) direction in the light channel
-        sobel_x = cv2.Sobel(l_channel, cv2.CV_64F, 1, 1) 
+        #Output is float64.
+        sobel_x = cv2.Sobel(l_channel, cv2.CV_64F, 1, 0) 
         abs_sobel_x = np.absolute(sobel_x)
+        
+        #Scale to 8bit range for the next binarization part
+        scaled_sobel_x = np.uint8(255 * abs_sobel_x/np.max(abs_sobel_x))
 
-        scaled_sobel = np.uint8(255 * abs_sobel_x/np.max(abs_sobel_x))
+        #Threshold x gradient
+        sobel_x_binary = np.zeros_like(scaled_sobel_x)
+        sobel_x_binary[(scaled_sobel_x >= self.sobel_x_thresh[0]) & (scaled_sobel_x <= self.sobel_x_thresh[1])] = 1
+        
+        #Threshold color channel (Take the brighter colors like white and yellow)
+        sat_binary = np.zeros_like(s_channel)
+        sat_binary[(s_channel >= self.sat_thresh[0]) & (s_channel <= self.sat_thresh[1])] = 1
 
-        #Trheshold x gradient
-        sx_binary = np.zeros_like(scaled_sobel)
-        sx_binary = [(scaled_sobel >= sx_thresh[0]) & (scaled_sobel <= sx_thresh[1])] = 1
+        #Concatenate the binarized images in the depth direction to make a 3 channel colored image.
+        #NOTE: Note sure if this is used, may be more for visual purposes
+        color_binary = np.dstack((np.zeros_like(sobel_x_binary), sobel_x_binary, sat_binary)) * 255
+        
+        #Make a combined binary image that is the Union
+        combined_binary = np.zeros_like(sobel_x_binary)
+        combined_binary[(sobel_x_binary == 1) | (sat_binary == 1)] = 1
+        
+        return(combined_binary)
 
-        #Threshold color channel
-        s_binary = np.zeros_like(s_channel)
-        s_binary[(s_channel >= s_thresh[0] & (s_channel <= s_thresh[1])] = 1
+    def histogram(self, img):
+        '''
+        Get a historgram of the columns of pixels for helping detect the lane
 
+        Parameters:
+            img: A binary image that should have the lanes as 1's and rest as 0's
+        Returns
+            hist: The histogram bins
+        '''
+        hist = np.sum(3*img[img.shape[0]//4:, :], axis=0)
+        return(hist)
+
+    def sliding_window(self, img, draw_windows=True):
+        '''
+        Slide windows over the primary regions where the lanes are found. A histogram
+        determines the optimal region to slide windows.
+
+        Parameters:
+            img: The perspective warped, "top-down" view image of the lanes
+            draw_windows: Draw the windows on the output image.
+        Returns:
+            out_img: The ouput image with the drawn windows
+        '''
+
+        #Set up the output image
+        out_img =np.dstack((img, img, img)) * 255
+
+        #Get the histogram of the image.
+        histogram = self.histogram(img)
+
+        #find the columns in the img that have the peaks in the histogram 
+        #Most likely candidate positions for lane
+        midpoint = int(histogram.shape[0]/2)
+        left_peak_column = np.argmax(histogram[:midpoint])
+        right_peak_column = np.argmax(histogram[midpoint:]) + midpoint
+        
+        #Set the window height
+        window_height = np.int(img.shape[0]/self.num_windows)
+        
+        #Identify the x and y positions of all nonzero pixels in the image
+        nonzero = img.nonzero()
+        nonzero_x = np.array(nonzero[1])
+        nonzero_y = np.array(nonzero[0])
+
+        #Set the positions to start iterating over in the x direction
+        left_x_curr = left_peak_column
+        right_x_curr = right_peak_column
+
+        #Create empty list to receive left and right lane pixel indices
+        left_lane_indexs = []
+        right_lane_indexs = []
+
+        for window in range(self.num_windows):
+            
+            #Identify window boundaries in x and y (and right and left)
+            win_y_low = img.shape[0] - (window+1) * window_height
+            win_y_high = img.shape[0] - window * window_height
+            
+            win_x_left_low = left_x_curr - self.margin
+            win_x_left_high = left_x_curr + self.margin
+            win_x_right_low = right_x_curr - self.margin
+            win_x_right_high = right_x_curr + self.margin
+            
+            #Draw the sliding windows for the left and right lanes
+            if draw_windows == True:
+                
+                cv2.rectangle(out_img,(win_x_left_low,win_y_low),(win_x_left_high,win_y_high),
+                             (100,255,255), 3) 
+                cv2.rectangle(out_img,(win_x_right_low,win_y_low),(win_x_right_high,win_y_high),
+                             (100,255,255), 3)
+            
+            #Identify the nonzero pixels in x and y within the window
+            good_left_indexs = ((nonzero_y >= win_y_low) & (nonzero_y < win_y_high) & \
+                (nonzero_x >= win_x_left_low) &  (nonzero_x < win_x_left_high)).nonzero()[0]
+            good_right_indexs = ((nonzero_y >= win_y_low) & (nonzero_y < win_y_high) & \
+                (nonzero_x >= win_x_right_low) &  (nonzero_x < win_x_right_high)).nonzero()[0]
+
+            #Append these indices to the lists
+            left_lane_indexs.append(good_left_indexs)
+            right_lane_indexs.append(good_right_indexs)
+
+            #Shift the next sliding window location by finding the mean of the nonzero pixels
+            #found within the window.
+            if len(good_left_indexs) > self.min_lane_pix:
+                left_x_curr = np.int(np.mean(nonzero_x[good_left_indexs]))
+            if len(good_right_indexs) > self.min_lane_pix:
+                right_x_curr = np.int(np.mean(nonzero_x[good_right_indexs]))
+
+        #Concatenate the array indicies
+        left_lane_indexs = np.concatenate(left_lane_indexs)
+        right_lane_indexs = np.concatenate(right_lane_indexs)
+
+        #Extract the left and righ line pixel positions
+        left_x = nonzero_x[left_lane_indexs]
+        left_y = nonzero_y[left_lane_indexs]
+        right_x = nonzero_x[right_lane_indexs]
+        right_y = nonzero_y[right_lane_indexs]
+
+        #Fit a second order ploynomial
+        left_fit = np.polyfit(left_y, left_x, 2)
+        right_fit = np.polyfit(right_y, right_x, 2)
+
+        left_a = [left_fit[0]]
+        left_b = [left_fit[1]]
+        left_c = [left_fit[2]]
+
+        right_a = [right_fit[0]]
+        right_b = [right_fit[1]]
+        right_c = [right_fit[2]]
+
+        left_fit_ = [0, 0, 0]
+        right_fit_ = [0, 0, 0]
+
+        left_fit_[0] = np.mean(left_a[-10:])
+        left_fit_[1] = np.mean(left_b[-10:])
+        left_fit_[2] = np.mean(left_c[-10:])
+    
+        right_fit_[0] = np.mean(right_a[-10:])
+        right_fit_[1] = np.mean(right_b[-10:])
+        right_fit_[2] = np.mean(right_c[-10:])
+
+        # Generate x and y values for plotting from the poly (ax^2 +bx +c)
+        ploty = np.linspace(0, img.shape[0]-1, img.shape[0] )
+        left_fitx = left_fit_[0] * ploty**2 + left_fit_[1] * ploty + left_fit_[2]
+        right_fitx = right_fit_[0]*ploty**2 + right_fit_[1]*ploty + right_fit_[2]
+
+        out_img[nonzero_y[left_lane_indexs], nonzero_x[left_lane_indexs]] = [255, 0, 100]
+        out_img[nonzero_y[right_lane_indexs], nonzero_x[right_lane_indexs]] = [0, 100, 255]
+
+        return out_img
 
 if __name__ == "__main__":
+
+    #Create subplots to help with visualization
+    fig, axs = plt.subplots(3, 1, sharey=True, tight_layout=True)
     
+    ####don't forget to convert BGR to RGB since the algorithm is based on RGB
     lane_detector = Lane_Detector()
     
+    #Region from the source image to see the lane ahead.
     src_roi = np.float32([(0.43, 0.62), (0.55, 0.62), (0.1, 1), (1, 1)])
     
      #Get a test image
     img = cv2.imread('test_images/lane_1.jpg')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img_size = [img.shape[1], img.shape[0]]
-   
-
+    
+    #Set up the matrix for warping the persective for a pseudo "top-down" view
     lane_detector._initialize_perspective_warp(img_size, img_size, src_roi)
     
     #Show the region that will be extracted to look
     roi_img = lane_detector._show_roi(img)
-    cv2.imshow('Lane Image', roi_img)
     
+
+    #Binarize the image for lane thresholding
+    binary_img = lane_detector.binarize_img(img)
+    #NOTE: Possibly add some morphology to clean up the lane detection
+
     #Warp the lane image to mimic a top down view
-    warped_img = lane_detector._perspective_warp(img)
+    warped_img = lane_detector._perspective_warp(binary_img)
+    
+    axs[0].imshow(img)
+    
+    #Perform the sliding window
+    slide_img = lane_detector.sliding_window(warped_img, draw_windows=True)
+    axs[1].imshow(slide_img)
 
-    cv2.imshow("Warped Lane Image", warped_img)
-
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
-
+    final_img = lane_detector._inv_perspective_warp(slide_img)
+    axs[2].imshow(final_img)
+    plt.show()
 
     
