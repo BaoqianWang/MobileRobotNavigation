@@ -10,6 +10,9 @@ import glob
 import time
 import pickle
 import matplotlib.pyplot as plt
+import rospy
+from sensor_msgs.msg import Image
+from cv_bridge import CvBridge, CvBridgeError
 
 class Lane_Detector():
     '''
@@ -366,53 +369,137 @@ class Lane_Detector():
         right_fit_[2] = np.mean(right_c[-10:])
 
         # Generate x and y values for plotting from the poly (ax^2 +bx +c)
-        ploty = np.linspace(0, img.shape[0]-1, img.shape[0] )
-        left_fitx = left_fit_[0] * ploty**2 + left_fit_[1] * ploty + left_fit_[2]
-        right_fitx = right_fit_[0]*ploty**2 + right_fit_[1]*ploty + right_fit_[2]
+        plot_y = np.linspace(0, img.shape[0]-1, img.shape[0] )
+        left_fit_x = left_fit_[0] * plot_y**2 + left_fit_[1] * plot_y + left_fit_[2]
+        right_fit_x = right_fit_[0]*plot_y**2 + right_fit_[1]*plot_y + right_fit_[2]
 
         out_img[nonzero_y[left_lane_indexs], nonzero_x[left_lane_indexs]] = [255, 0, 100]
         out_img[nonzero_y[right_lane_indexs], nonzero_x[right_lane_indexs]] = [0, 100, 255]
 
-        return out_img
+        return out_img, (left_fit_x, right_fit_x), (left_fit_, right_fit_), plot_y
+
+    def draw_lanes(self, img, left_fit, right_fit):
+        '''
+        Draw the lanes detected by the lane detector.
+
+        Parameters:
+            img: The warped "top-down" viewed image of the lanes
+            left_fit: The polynomial points describing the left lane
+            right_fit: The polynomial points describing the right lane.
+        Returns:
+            out_imag: The original perspective of the lane with the detected lanes outlined
+        '''
+        plot_y = np.linspace(0, img.shape[0] - 1, img.shape[0])
+        color_img = np.zeros_like(img)
+
+        left = np.array([np.transpose(np.vstack([left_fit, plot_y]))])
+        right = np.array([np.flipud(np.transpose(np.vstack([right_fit, plot_y])))])
+        points = np.hstack((left, right))
+
+        cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
+        out_img = self._inv_perspective_warp(color_img)
+        out_img = cv2.addWeighted(img, 1, out_img, 0.7, 0)
+        return(out_img)
+    def detect(self, img):
+        '''
+        The entire pipeline for detecting the lane.
+
+        Parameters:
+            img: The raw input BGR image of the lane/road.
+
+        Returns:
+            
+        '''
+        
+        #Binarized the image using sobel filters to identify most probale regions for the lane
+        binary_img = self.binarize_img(img)
+        
+        #Change the perspective to have a pseudo "top-down" view of the lanes
+        warped_img = self._perspective_warp(binary_img)
+
+        #Perform sliding window to detect the lane curvatures
+        slide_img, curves, lanes, plot_y = self.sliding_window(warped_img, draw_windows=False)
+        
+        #Draw the lane region on a new colored picture.
+
+        final_img = self.draw_lanes(img, curves[0], curves[1])
+
+        return(final_img)
+
+class Lane_Detection_ROS():
+    """
+    This class provides the interface between the Lane detection algorithm 
+    and the smile mobile robot running in the ROS ecosystem.
+    """
+    def __init__(self, node_name="lane_detector"):
+        '''
+        Initialize the communication to the image data and run lane detection on it.
+
+        Parameters:
+            node_name: The name of this ROS lane detection node. Default: lane_detector
+
+        Returns:
+            N/A
+        '''
+
+        rospy.init_node(node_name)
+
+        #TOPICS
+        camera_topic = rospy.get_namespace() + 'camera1/image_raw'
+        
+        #Subscriber to the image data coming from the robot
+        self.camera_sub = rospy.Subscriber(camera_topic, Image, self._camera_callback)
+        
+        #Convesion bridge between ROS image messages and OpenCV message types.
+        self.bridge = CvBridge()
+
+        #Initialize the lane detector algorithm
+        self.lane_detector = Lane_Detector()
+        
+        #Set the image size that is expected to be received
+        self.img_size = [800, 800]
+
+        #Set the region from the source image to see the lane ahead
+        self.src_roi = np.float32([(0.43, 0.62), (0.55, 0.62), (0.1, 1), (1, 1)])
+        self.lane_detector._initialize_perspective_warp(self.img_size, self.img_size, self.src_roi)
+        
+    def _camera_callback(self, img_msg):
+        '''
+        Callback for the image data being received
+
+        Parameters:
+            img_msg: The image data message
+        Returns:
+            N/A
+        '''
+        try:
+            #Converts the image message to a cv2 (numpy) message
+            self.img = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
+        except CvBridgeError as e:
+            print(e)
+        
+        cv2.imshow("Image_window", self.img)
+        cv2.waitKey(3)
+
+    def run(self):
+        '''
+        Main loop for running the ros interface for lane detection
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+        
+        try:
+            # while not rospy.is_shutdown():
+            rospy.spin()
+
+        except rospy.ROSInterruptException:
+            pass
+        cv2.destroyAllWindows()
 
 if __name__ == "__main__":
 
-    #Create subplots to help with visualization
-    fig, axs = plt.subplots(3, 1, sharey=True, tight_layout=True)
-    
-    ####don't forget to convert BGR to RGB since the algorithm is based on RGB
-    lane_detector = Lane_Detector()
-    
-    #Region from the source image to see the lane ahead.
-    src_roi = np.float32([(0.43, 0.62), (0.55, 0.62), (0.1, 1), (1, 1)])
-    
-     #Get a test image
-    img = cv2.imread('test_images/lane_1.jpg')
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img_size = [img.shape[1], img.shape[0]]
-    
-    #Set up the matrix for warping the persective for a pseudo "top-down" view
-    lane_detector._initialize_perspective_warp(img_size, img_size, src_roi)
-    
-    #Show the region that will be extracted to look
-    roi_img = lane_detector._show_roi(img)
-    
-
-    #Binarize the image for lane thresholding
-    binary_img = lane_detector.binarize_img(img)
-    #NOTE: Possibly add some morphology to clean up the lane detection
-
-    #Warp the lane image to mimic a top down view
-    warped_img = lane_detector._perspective_warp(binary_img)
-    
-    axs[0].imshow(img)
-    
-    #Perform the sliding window
-    slide_img = lane_detector.sliding_window(warped_img, draw_windows=True)
-    axs[1].imshow(slide_img)
-
-    final_img = lane_detector._inv_perspective_warp(slide_img)
-    axs[2].imshow(final_img)
-    plt.show()
-
-    
+    lane_detection_ros = Lane_Detection_ROS()
+    lane_detection_ros.run()
