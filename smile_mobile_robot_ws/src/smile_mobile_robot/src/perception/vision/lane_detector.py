@@ -400,6 +400,7 @@ class Lane_Detector():
         out_img = self._inv_perspective_warp(color_img)
         out_img = cv2.addWeighted(img, 1, out_img, 0.7, 0)
         return(out_img)
+
     def detect(self, img):
         '''
         The entire pipeline for detecting the lane.
@@ -408,7 +409,7 @@ class Lane_Detector():
             img: The raw input BGR image of the lane/road.
 
         Returns:
-            
+            final_img: The image with the lane traced over it.            
         '''
         
         #Binarized the image using sobel filters to identify most probale regions for the lane
@@ -421,7 +422,6 @@ class Lane_Detector():
         slide_img, curves, lanes, plot_y = self.sliding_window(warped_img, draw_windows=False)
         
         #Draw the lane region on a new colored picture.
-
         final_img = self.draw_lanes(img, curves[0], curves[1])
 
         return(final_img)
@@ -458,11 +458,13 @@ class Lane_Detection_ROS():
         
         #Set the image size that is expected to be received
         self.img_size = [800, 800]
+        self.img = np.zeros((self.img_size[0], self.img_size[1], 3), np.int8)
 
         #Set the region from the source image to see the lane ahead
         self.src_roi = np.float32([(0.43, 0.62), (0.55, 0.62), (0.1, 1), (1, 1)])
         self.lane_detector._initialize_perspective_warp(self.img_size, self.img_size, self.src_roi)
         
+        self.rate = rospy.Rate(30) #30Hz fps
     def _camera_callback(self, img_msg):
         '''
         Callback for the image data being received
@@ -478,8 +480,6 @@ class Lane_Detection_ROS():
         except CvBridgeError as e:
             print(e)
         
-        cv2.imshow("Image_window", self.img)
-        cv2.waitKey(3)
 
     def run(self):
         '''
@@ -492,8 +492,12 @@ class Lane_Detection_ROS():
         '''
         
         try:
-            # while not rospy.is_shutdown():
-            rospy.spin()
+            while not rospy.is_shutdown():
+                
+                lane_detect_img = self.lane_detector.detect(self.img)
+                cv2.imshow("Lane Detection", lane_detect_img)
+                cv2.waitKey(0)
+                self.rate.sleep()
 
         except rospy.ROSInterruptException:
             pass
