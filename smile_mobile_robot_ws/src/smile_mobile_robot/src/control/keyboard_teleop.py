@@ -9,6 +9,7 @@ import rospy
 from std_msgs.msg import Int16MultiArray
 from pynput import keyboard
 import sys
+import numpy as np
 
 class Keyboard_Teleop:
     '''
@@ -47,8 +48,14 @@ class Keyboard_Teleop:
 
         self.linear_pwm = 0
         self.angular_pwm = 0
-        self.set_linear_pwm = 200
-        self.set_angular_pwm = 55
+        self.linear_go = 0
+        self.angular_go = 0
+
+        #Preset values (min = 0, max = 255)!
+        self.set_linear_pwm_perc = 0.1
+        self.set_angular_pwm_perc = 0.2
+        self.set_linear_pwm = int(self.set_linear_pwm_perc * 255)
+        self.set_angular_pwm = int(self.set_angular_pwm_perc * 255)
 
 
     def on_press(self, key):
@@ -67,16 +74,26 @@ class Keyboard_Teleop:
 
         #Ensure w and s aren't read at the same time
         if(key.char == 'w'): #Forward movement
-            self.linear_pwm = self.set_linear_pwm
+            self.linear_go = 1
         elif(key.char == 's'):
-            self.linear_pwm = -1 * self.set_linear_pwm
+            self.linear_go = -1
 
         if(key.char == 'a'):#Left turns
-            self.angular_pwm = -1 * self.set_angular_pwm
+            self.angular_go = 1
 
         elif(key.char == 'd'): #Right turns
-            self.angular_pwm = self.set_angular_pwm
+            self.angular_go = -1
         
+        if(key.char == 'i'): #Increase the throttle
+            if(self.set_linear_pwm_perc < 0.9):
+                self.set_linear_pwm_perc += 0.1
+                self.set_linear_pwm = int(self.set_linear_pwm_perc * 255)
+
+        elif(key.char == 'j'): #Decrease the throttle
+            if(self.set_linear_pwm_perc > 0.1):
+                self.set_linear_pwm_perc -= 0.1
+                self.set_linear_pwm = int(self.set_linear_pwm_perc * 255)
+                
     
     def on_release(self, key):
         '''
@@ -89,10 +106,10 @@ class Keyboard_Teleop:
             N/A
         '''
         if(key.char == 'w' or key.char == 's'):
-            self.linear_pwm = 0
+            self.linear_go = 0
 
         elif(key.char == 'a' or key.char == 'd'):
-            self.angular_pwm = 0
+            self.angular_go = 0
         
     
     def run(self):
@@ -105,15 +122,40 @@ class Keyboard_Teleop:
             N/A
         '''
         self.listener.start()
+        angular_mean_filter = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+        linear_mean_filter = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
 
         try:
             while not rospy.is_shutdown():
                 
                 #mix the linear and angular pwm's to get the pwm of each motor
-                pwm_1 = self.linear_pwm - self.angular_pwm
-                pwm_2 = self.linear_pwm + self.angular_pwm
-                pwm_3 = self.linear_pwm + self.angular_pwm
-                pwm_4 = self.linear_pwm - self.angular_pwm
+                if(self.linear_go == -1):
+                    self.linear_pwm = -1 * self.set_linear_pwm
+                elif(self.linear_go == 1):
+                    self.linear_pwm = self.set_linear_pwm
+                else:
+                    self.linear_pwm = 0
+               
+                if(self.angular_go == -1):
+                    self.angular_pwm = -1 * self.set_angular_pwm
+                elif(self.angular_go == 1):
+                    self.angular_pwm = self.set_angular_pwm
+                else:
+                    self.angular_pwm = 0
+                
+                #Run the mean average filter to ensure values don't change too fast
+                angular_mean_filter = np.delete(angular_mean_filter, 0); 
+                angular_mean_filter = np.append(angular_mean_filter, self.angular_pwm)
+                linear_mean_filter = np.delete(linear_mean_filter, 0); 
+                linear_mean_filter = np.append(linear_mean_filter, self.linear_pwm)
+                angular_pwm_filt = np.mean(angular_mean_filter)
+                linear_pwm_filt = np.mean(linear_mean_filter)
+
+                pwm_1 = linear_pwm_filt - angular_pwm_filt
+                pwm_2 = linear_pwm_filt + angular_pwm_filt
+                pwm_3 = linear_pwm_filt + angular_pwm_filt
+                pwm_4 = linear_pwm_filt - angular_pwm_filt
 
                 pwms = [pwm_1, pwm_2, pwm_3, pwm_4]
                 
