@@ -47,5 +47,6 @@ catkin_install_python(PROGRAMS
     src/perception/raw_odometry.py
     src/helpers/send_desired_movement.py
     src/control/keyboard_teleop.py
+    src/perception/vision/lane_detector.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
