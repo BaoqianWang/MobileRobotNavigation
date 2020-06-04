@@ -46,5 +46,6 @@ catkin_install_python(PROGRAMS
     src/control/movement_controller.py
     src/perception/raw_odometry.py
     src/helpers/send_desired_movement.py
+    src/control/keyboard_teleop.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
