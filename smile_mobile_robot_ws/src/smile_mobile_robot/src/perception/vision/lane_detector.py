@@ -33,6 +33,10 @@ class Lane_Detector():
         self.num_windows = 9
         self.margin = 150
         self.min_lane_pix = 2
+        self.center_line = 400 #The line to plot the trajectory point.(with respect to topdown view)
+        self.center_line_region = [50, 50] #The number of vertical pixels above and below the center line.
+
+
     def calibrate_camera(self, grid_count_h, grid_count_v, cal_save_file):
         '''
         Calibrate the camera to minimize distortion.
@@ -393,7 +397,7 @@ class Lane_Detector():
 
         out_img[nonzero_y[left_lane_indexs], nonzero_x[left_lane_indexs]] = [255, 0, 100]
         out_img[nonzero_y[right_lane_indexs], nonzero_x[right_lane_indexs]] = [0, 100, 255]
-
+        
         return True, out_img, (left_fit_x, right_fit_x), (left_fit_, right_fit_), plot_y
 
     def draw_lanes(self, img, left_fit, right_fit):
@@ -414,10 +418,52 @@ class Lane_Detector():
         right = np.array([np.flipud(np.transpose(np.vstack([right_fit, plot_y])))])
         points = np.hstack((left, right))
 
-        cv2.fillPoly(color_img, np.int_(points), (0, 200, 255))
+        #Paint the detected lane 
+        cv2.fillPoly(color_img, np.int_(points), (51, 255, 51))
+        
+        #Get the center line trajectory
+        center_fit, center_point = self.get_trajectory_point(left_fit, right_fit)
+        center = np.array([np.transpose(np.vstack([center_fit, plot_y]))])
+        cv2.polylines(color_img, np.int_(center), isClosed=False, color=(255, 0, 0), thickness=3)
+        
+        #cv2.circle(color_img, (center_point, self.center_line), 10, (0, 162, 255), thickness=-1)
+        cv2.line(color_img, (center_point-20, self.center_line), (center_point+20, self.center_line), (255, 0, 0), thickness=10)
+        
         out_img = self._inv_perspective_warp(color_img)
         out_img = cv2.addWeighted(img, 1, out_img, 0.7, 0)
+                
         return(out_img)
+    
+    def get_trajectory_point(self, left_fit_x, right_fit_x):
+        '''
+        Get the center of the lane and the trajectory (point) needed
+        to follow the lane.
+
+        Parameters:
+            left_fit_x: The polynomial fitting the left lane.
+            right_fit_x: The polynomial fitting the right lane.
+
+        Returns:
+            
+        '''
+        
+        #Take the mean of the polynomials
+        center_fit = (left_fit_x + right_fit_x) / 2.0
+        
+        #Calculate the center within the center line region
+        left_fit_in_center = left_fit_x[self.center_line - self.center_line_region[0]:self.center_line + self.center_line_region[1]]
+
+        right_fit_in_center = right_fit_x[self.center_line - self.center_line_region[0]:self.center_line + self.center_line_region[1]]
+
+        center_point = np.mean((left_fit_in_center + right_fit_in_center) / 2.0)
+
+
+        return center_fit, int(center_point)
+
+
+        
+        
+
 
     def detect(self, img):
         '''
@@ -439,12 +485,14 @@ class Lane_Detector():
         #return(warped_img)
         #Perform sliding window to detect the lane curvatures
         ret, slide_img, curves, lanes, plot_y = self.sliding_window(binary_img, draw_windows=True)
-
+        
+        #If a "good" lane detection was found, draw the lanes
         if(ret == True):
             #Draw the lane region on a new colored picture.
             final_img = self.draw_lanes(img, curves[0], curves[1])
             return ret, final_img
-        return ret, None
+        
+        return False, img
 
 class Lane_Detection_ROS():
     """
@@ -479,7 +527,7 @@ class Lane_Detection_ROS():
         #Set the image size that is expected to be received
         self.img_size = [800, 800]
         self.img = np.zeros((self.img_size[0], self.img_size[1], 3), np.uint8)
-        self.img[10:40, 11:12, :] = 255
+         
         #Set the region from the source image to see the lane ahead
         self.src_roi = np.float32([(0.35, 0.60), (0.65, 0.60), (0, 0.8), (1, 0.8)])
         self.lane_detector._initialize_perspective_warp(self.img_size, self.img_size, self.src_roi)
