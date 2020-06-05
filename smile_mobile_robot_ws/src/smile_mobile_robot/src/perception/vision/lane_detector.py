@@ -28,8 +28,8 @@ class Lane_Detector():
             N/A
         '''
 
-        self.sobel_x_thresh = [50, 255]
-        self.sat_thresh = [20, 255]
+        self.sobel_x_thresh = [70, 255]
+        self.sat_thresh = [10, 255]
         self.num_windows = 9
         self.margin = 150
         self.min_lane_pix = 2
@@ -228,10 +228,16 @@ class Lane_Detector():
 
         #Scale to 8bit range for the next binarization part
         scaled_sobel_x = np.uint8(255 * abs_sobel_x/np.max(abs_sobel_x))
-
+        
         #Threshold x gradient
         sobel_x_binary = np.zeros_like(scaled_sobel_x)
         sobel_x_binary[(scaled_sobel_x >= self.sobel_x_thresh[0]) & (scaled_sobel_x <= self.sobel_x_thresh[1])] = 1
+       
+        #Help elimate white noise
+        kernel_1 = np.ones((3, 3), np.uint8)
+        sobel_x_binary = cv2.morphologyEx(sobel_x_binary, cv2.MORPH_OPEN, kernel_1)
+        kernel_2 = np.ones((5, 5), np.uint8)
+        sobel_x_binary = cv2.dilate(sobel_x_binary, kernel_2, iterations=1)
 
         #Threshold color channel (Take the brighter colors like white and yellow)
         sat_binary = np.zeros_like(s_channel)
@@ -245,7 +251,7 @@ class Lane_Detector():
         combined_binary = np.zeros_like(sobel_x_binary)
         combined_binary[(sobel_x_binary == 1) | (sat_binary == 1)] = 1
 
-        return(combined_binary)
+        return(sobel_x_binary)
 
     def histogram(self, img):
         '''
@@ -256,7 +262,7 @@ class Lane_Detector():
         Returns
             hist: The histogram bins
         '''
-        hist = np.sum(3*img[img.shape[0]//4:, :], axis=0)
+        hist = np.sum(img[img.shape[0]//2:, :], axis=0)
         return(hist)
 
     def sliding_window(self, img, draw_windows=True):
@@ -280,8 +286,14 @@ class Lane_Detector():
         #find the columns in the img that have the peaks in the histogram
         #Most likely candidate positions for lane
         midpoint = int(histogram.shape[0]/2)
+        num_left_candidate_pixels = np.sum(histogram[:midpoint])
+        num_right_candidate_pixels = np.sum(histogram[midpoint:])
+        if(num_left_candidate_pixels < 14000 or num_right_candidate_pixels < 14000):
+            return(False, None, None, None, None)
+
         left_peak_column = np.argmax(histogram[:midpoint])
         right_peak_column = np.argmax(histogram[midpoint:]) + midpoint
+        
 
         #Set the window height
         window_height = np.int(img.shape[0]/self.num_windows)
@@ -338,12 +350,14 @@ class Lane_Detector():
         #Concatenate the array indicies
         left_lane_indexs = np.concatenate(left_lane_indexs)
         right_lane_indexs = np.concatenate(right_lane_indexs)
+        
 
         #Extract the left and righ line pixel positions
         left_x = nonzero_x[left_lane_indexs]
         left_y = nonzero_y[left_lane_indexs]
         right_x = nonzero_x[right_lane_indexs]
         right_y = nonzero_y[right_lane_indexs]
+        
         if(left_x.size == 0 or left_y.size == 0 or right_x.size == 0 or right_y.size == 0):
             return False, None, None, None, None
         #Fit a second order ploynomial
@@ -416,14 +430,15 @@ class Lane_Detector():
             final_img: The image with the lane traced over it.
         '''
 
-        #Binarized the image using sobel filters to identify most probale regions for the lane
-        binary_img = self.binarize_img(img)
-
         #Change the perspective to have a pseudo "top-down" view of the lanes
-        warped_img = self._perspective_warp(binary_img)
+        warped_img = self._perspective_warp(img)
+        
+         #Binarized the image using sobel filters to identify most probale regions for the lane
+        binary_img = self.binarize_img(warped_img)
+
         #return(warped_img)
         #Perform sliding window to detect the lane curvatures
-        ret, slide_img, curves, lanes, plot_y = self.sliding_window(warped_img, draw_windows=True)
+        ret, slide_img, curves, lanes, plot_y = self.sliding_window(binary_img, draw_windows=True)
 
         if(ret == True):
             #Draw the lane region on a new colored picture.
@@ -502,10 +517,18 @@ class Lane_Detection_ROS():
                 ret, lane_detect_img = self.lane_detector.detect(self.img)
                 #roi = self.lane_detector.show_roi(self.img)
                 #cv2.imshow("ROI", roi)
-
+                #warped = self.lane_detector._perspective_warp(self.img)
+                #binary = self.lane_detector.binarize_img(warped)
+                #cv2.imshow("Binary", binary*255)
+                
+                show_img = self.img
                 if(ret):
-                    cv2.imshow("Lane Detection", self.lane_detector.show_roi(lane_detect_img))
-
+                    
+                    show_img = lane_detect_img
+                
+                cv2.imshow("Lane Detection", self.lane_detector.show_roi(show_img))
+                
+                
                 cv2.waitKey(1)
                 self.rate.sleep()
 

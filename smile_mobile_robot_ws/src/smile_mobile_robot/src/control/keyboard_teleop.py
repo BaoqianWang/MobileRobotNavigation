@@ -53,7 +53,7 @@ class Keyboard_Teleop:
 
         #Preset values (min = 0, max = 255)!
         self.set_linear_pwm_perc = 0.1
-        self.set_angular_pwm_perc = 0.2
+        self.set_angular_pwm_perc = 0.4
         self.set_linear_pwm = int(self.set_linear_pwm_perc * 255)
         self.set_angular_pwm = int(self.set_angular_pwm_perc * 255)
 

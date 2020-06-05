@@ -13,7 +13,7 @@
   <group ns="smile">
     <node name="raw_odometry" pkg="smile_mobile_robot" type="raw_odometry.py"/>
         
-    <node name="keyboard_teleop" pkg="smile_mobile_robot" type="keyboard_teleop.py"/>
+    <!--<node name="keyboard_teleop" pkg="smile_mobile_robot" type="keyboard_teleop.py"/>-->
   </group>
 
 </launch>
