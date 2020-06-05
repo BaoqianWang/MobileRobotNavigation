@@ -1,18 +1,20 @@
 <?xml version="1.0"?>
 <robot name="smile" xmlns:xacro="http//www.ros.org/wiki/xacro">
-  <!--chassis Dimension [9" 10.5" 1.32"]-->
-  <xacro:property name="chassis_width" value="0.2286"/>
-  <xacro:property name="chassis_length" value="0.2667"/>
-  <xacro:property name="chassis_height" value="0.033528"/>
-  <xacro:property name="chassis_mass" value="1.0"/>
+   <xacro:property name="scale" value="3.0"/>  
+    
+   <!--chassis Dimension [9" 10.5" 1.32"]-->
+   <xacro:property name="chassis_width" value="${scale * 0.2286}"/>
+   <xacro:property name="chassis_length" value="${scale * 0.2667}"/>
+   <xacro:property name="chassis_height" value="${scale * 0.033528}"/>
+   <xacro:property name="chassis_mass" value="${scale * 1.0}"/>
 
-  <xacro:property name="wheel_radius" value="0.06858"/>
-  <xacro:property name="wheel_width" value="0.0254"/>
-  <xacro:property name="wheel_pos_offset" value=".0254"/>
-  <xacro:property name="wheel_mass" value="0.5"/>
+   <xacro:property name="wheel_radius" value="${scale * 0.06858}"/>
+   <xacro:property name="wheel_width" value="${scale * 0.0254}"/>
+   <xacro:property name="wheel_pos_offset" value="${scale * 0.0254}"/>
+   <xacro:property name="wheel_mass" value="${scale * 0.5}"/>
   
-  <xacro:property name="sensor_mount_width" value="0.15"/>
-  <xacro:property name="sensor_mount_height" value="0.2"/>
+   <xacro:property name="sensor_mount_width" value="${scale * 0.15}"/>
+   <xacro:property name="sensor_mount_height" value="${scale * 0.2}"/>
 
   <xacro:property name="pi_div_2" value="1.57075"/>
   

@@ -28,8 +28,8 @@ class Lane_Detector():
             N/A
         '''
     
-        self.sobel_x_thresh = [15, 255]
-        self.sat_thresh = [100, 255]
+        self.sobel_x_thresh = [50, 255]
+        self.sat_thresh = [20, 255]
         self.num_windows = 9   
         self.margin = 150
         self.min_lane_pix = 2
@@ -181,7 +181,7 @@ class Lane_Detector():
 
         return
 
-    def _show_roi(self, img):
+    def show_roi(self, img):
         '''
         Draw the region of interest on a lane image.
 
@@ -216,7 +216,7 @@ class Lane_Detector():
             img = self.undistort_image(img)
         
         #Convert the image to HLS space and seperate out V channel
-        hls = cv2.cvtColor(img, cv2.COLOR_RGB2HLS).astype(np.float)
+        hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS).astype(np.float)
         l_channel = hls[:, :, 1] #Lightness
         s_channel = hls[:, :, 2] #Saturation
         h_channel = hls[:, :, 0] #Hue
@@ -334,20 +334,24 @@ class Lane_Detector():
                 left_x_curr = np.int(np.mean(nonzero_x[good_left_indexs]))
             if len(good_right_indexs) > self.min_lane_pix:
                 right_x_curr = np.int(np.mean(nonzero_x[good_right_indexs]))
-
+        
         #Concatenate the array indicies
         left_lane_indexs = np.concatenate(left_lane_indexs)
         right_lane_indexs = np.concatenate(right_lane_indexs)
-
+        
         #Extract the left and righ line pixel positions
         left_x = nonzero_x[left_lane_indexs]
         left_y = nonzero_y[left_lane_indexs]
         right_x = nonzero_x[right_lane_indexs]
         right_y = nonzero_y[right_lane_indexs]
-
+        if(left_x.size == 0 or left_y.size == 0 or right_x.size == 0 or right_y.size == 0):
+            return False, None, None, None, None
         #Fit a second order ploynomial
         left_fit = np.polyfit(left_y, left_x, 2)
         right_fit = np.polyfit(right_y, right_x, 2)
+        
+        #TODO: See how to solve issue with bad lanes.
+        #Possibly use the covariance?
 
         left_a = [left_fit[0]]
         left_b = [left_fit[1]]
@@ -376,7 +380,7 @@ class Lane_Detector():
         out_img[nonzero_y[left_lane_indexs], nonzero_x[left_lane_indexs]] = [255, 0, 100]
         out_img[nonzero_y[right_lane_indexs], nonzero_x[right_lane_indexs]] = [0, 100, 255]
 
-        return out_img, (left_fit_x, right_fit_x), (left_fit_, right_fit_), plot_y
+        return True, out_img, (left_fit_x, right_fit_x), (left_fit_, right_fit_), plot_y
 
     def draw_lanes(self, img, left_fit, right_fit):
         '''
@@ -417,14 +421,15 @@ class Lane_Detector():
         
         #Change the perspective to have a pseudo "top-down" view of the lanes
         warped_img = self._perspective_warp(binary_img)
-
+        #return(warped_img)
         #Perform sliding window to detect the lane curvatures
-        slide_img, curves, lanes, plot_y = self.sliding_window(warped_img, draw_windows=False)
+        ret, slide_img, curves, lanes, plot_y = self.sliding_window(warped_img, draw_windows=True)
         
-        #Draw the lane region on a new colored picture.
-        final_img = self.draw_lanes(img, curves[0], curves[1])
-
-        return(final_img)
+        if(ret == True):
+            #Draw the lane region on a new colored picture.
+            final_img = self.draw_lanes(img, curves[0], curves[1])
+            return ret, final_img
+        return ret, None
 
 class Lane_Detection_ROS():
     """
@@ -458,10 +463,10 @@ class Lane_Detection_ROS():
         
         #Set the image size that is expected to be received
         self.img_size = [800, 800]
-        self.img = np.zeros((self.img_size[0], self.img_size[1], 3), np.int8)
-
+        self.img = np.zeros((self.img_size[0], self.img_size[1], 3), np.uint8)
+        self.img[10:40, 11:12, :] = 255
         #Set the region from the source image to see the lane ahead
-        self.src_roi = np.float32([(0.43, 0.62), (0.55, 0.62), (0.1, 1), (1, 1)])
+        self.src_roi = np.float32([(0.35, 0.60), (0.65, 0.60), (0, 0.8), (1, 0.8)])
         self.lane_detector._initialize_perspective_warp(self.img_size, self.img_size, self.src_roi)
         
         self.rate = rospy.Rate(30) #30Hz fps
@@ -494,9 +499,14 @@ class Lane_Detection_ROS():
         try:
             while not rospy.is_shutdown():
                 
-                lane_detect_img = self.lane_detector.detect(self.img)
-                cv2.imshow("Lane Detection", lane_detect_img)
-                cv2.waitKey(0)
+                ret, lane_detect_img = self.lane_detector.detect(self.img)
+                #roi = self.lane_detector.show_roi(self.img)
+                #cv2.imshow("ROI", roi)
+                
+                if(ret):
+                    cv2.imshow("Lane Detection", self.lane_detector.show_roi(lane_detect_img))
+                
+                cv2.waitKey(1)
                 self.rate.sleep()
 
         except rospy.ROSInterruptException:
