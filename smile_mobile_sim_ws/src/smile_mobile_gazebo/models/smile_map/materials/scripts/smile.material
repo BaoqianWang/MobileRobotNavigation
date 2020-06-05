@@ -10,7 +10,7 @@ material Smile/Map
 
       texture_unit
       {
-        texture Smile_Map.png
+        texture ../textures/Smile_Map.png
         filtering trilinear
       }
     }
