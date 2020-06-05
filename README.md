@@ -25,6 +25,7 @@ rosdep install --from-paths src --ignore-src -r -y
 catkin_make
 source devel/setup.bash
 ```
+
 Now, you should added the sourcing lines to the **.bashrc** so that the correct ROS_PACKAGE_PATH is set each time a new terminal is opened. Open the files with **vim ~/.bashrc**. At the end of the file, add
 
 ```cmd
@@ -33,6 +34,13 @@ source ~/smile-mobile/smile_mobile_robot_ws/devel/setup.bash
 source ~/smile-mobile/smile_mobile_sim_ws/devel/setup.bash
 ```
 
+### Adding the Gazebo World Models to Environment Variables
+In order to launch the world correctly, the model paths for the smile mobile robot worlds need to be added to the environment variable path **GAZEBO_MODEL_PATH**. The best way to do this is to add the sourcing to the **.bashrc**. Note the directories shown below may differ for users.
+
+```cmd
+source /usr/share/gazebo/setup.sh
+export GAZEBO_MODEL_PATH=$GAZEBO_MODEL_PATH:~/smile-mobile/smile_mobile_sim_ws/src/smile_mobile_gazebo/models/
+```
 
 Note: For some users, it maybe necessary to run **chmod +x [Executable].py** for any executable python scripts in the package.
 
