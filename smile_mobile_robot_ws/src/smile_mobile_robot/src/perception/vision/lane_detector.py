@@ -27,10 +27,10 @@ class Lane_Detector():
         Returns:
             N/A
         '''
-    
+
         self.sobel_x_thresh = [50, 255]
         self.sat_thresh = [20, 255]
-        self.num_windows = 9   
+        self.num_windows = 9
         self.margin = 150
         self.min_lane_pix = 2
     def calibrate_camera(self, grid_count_h, grid_count_v, cal_save_file):
@@ -50,7 +50,7 @@ class Lane_Detector():
         #makes the grid with (x, y, z) points where z=0
         object_points = np.zeros((grid_count_h*grid_count_v, 3), np.float32)
         object_points[:, :2] = np.mgrid[0:grid_count_h, 0:grid_count_v].T.reshape(-1, 2)
-        
+
         #Array to stor the object points matrix
         object_points_array = []
         image_points_array = [] #2D corner points found by the chess board find function
@@ -60,7 +60,7 @@ class Lane_Detector():
         images = glob.glob('calibration_imgs/*.jpg')
 
         for frame_name in images:
-            
+
             #For testing purposes.
             img = cv2.imread(frame_name)
             gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -86,12 +86,12 @@ class Lane_Detector():
         dist_pickle['mtx'] = mtx
         dist_pickle['dist'] = dist
         pickle.dump(dist_pickle, open(cal_save_file, 'wb'))
- 
+
         #Save the camera matrix and distortion matrix
         self.camera_matrix = mtx
         self.distortion_matrix = dist
-        
-        
+
+
     def load_calibrations(self, cal_save_file):
         '''
         Load the camera calibrations that are used to undistor images.
@@ -133,7 +133,7 @@ class Lane_Detector():
         Returns:
             warped: The warped image.
         '''
-         
+
         #Apply the transformation matrix and warp the image
         warped = cv2.warpPerspective(img, self.M, tuple(self.dst_size))
         return warped
@@ -147,12 +147,12 @@ class Lane_Detector():
         Returns:
             warped: The warped image.
         '''
-         
+
         #Apply the transformation matrix and warp the image
         warped = cv2.warpPerspective(img, np.linalg.inv(self.M), tuple(self.dst_size))
         return warped
 
-   
+
     def _initialize_perspective_warp(self, src_size, dst_size, src_roi):
         '''
         Initilize the region of interest for the lane detector to look for lanes.
@@ -204,17 +204,17 @@ class Lane_Detector():
 
     def binarize_img(self, img, undistort=False):
         '''
-        Binarizes the RGB lane image using sobel filtering on the HLS 
+        Binarizes the RGB lane image using sobel filtering on the HLS
         color format.
 
         Parameters:
-            img: 
-            
+            img:
+
         Returns:
         '''
         if(undistort):
             img = self.undistort_image(img)
-        
+
         #Convert the image to HLS space and seperate out V channel
         hls = cv2.cvtColor(img, cv2.COLOR_BGR2HLS).astype(np.float)
         l_channel = hls[:, :, 1] #Lightness
@@ -223,16 +223,16 @@ class Lane_Detector():
 
         #Take the sobel in the vertical (x) direction in the light channel
         #Output is float64.
-        sobel_x = cv2.Sobel(l_channel, cv2.CV_64F, 1, 0) 
+        sobel_x = cv2.Sobel(l_channel, cv2.CV_64F, 1, 0)
         abs_sobel_x = np.absolute(sobel_x)
-        
+
         #Scale to 8bit range for the next binarization part
         scaled_sobel_x = np.uint8(255 * abs_sobel_x/np.max(abs_sobel_x))
 
         #Threshold x gradient
         sobel_x_binary = np.zeros_like(scaled_sobel_x)
         sobel_x_binary[(scaled_sobel_x >= self.sobel_x_thresh[0]) & (scaled_sobel_x <= self.sobel_x_thresh[1])] = 1
-        
+
         #Threshold color channel (Take the brighter colors like white and yellow)
         sat_binary = np.zeros_like(s_channel)
         sat_binary[(s_channel >= self.sat_thresh[0]) & (s_channel <= self.sat_thresh[1])] = 1
@@ -240,11 +240,11 @@ class Lane_Detector():
         #Concatenate the binarized images in the depth direction to make a 3 channel colored image.
         #NOTE: Note sure if this is used, may be more for visual purposes
         color_binary = np.dstack((np.zeros_like(sobel_x_binary), sobel_x_binary, sat_binary)) * 255
-        
+
         #Make a combined binary image that is the Union
         combined_binary = np.zeros_like(sobel_x_binary)
         combined_binary[(sobel_x_binary == 1) | (sat_binary == 1)] = 1
-        
+
         return(combined_binary)
 
     def histogram(self, img):
@@ -277,15 +277,15 @@ class Lane_Detector():
         #Get the histogram of the image.
         histogram = self.histogram(img)
 
-        #find the columns in the img that have the peaks in the histogram 
+        #find the columns in the img that have the peaks in the histogram
         #Most likely candidate positions for lane
         midpoint = int(histogram.shape[0]/2)
         left_peak_column = np.argmax(histogram[:midpoint])
         right_peak_column = np.argmax(histogram[midpoint:]) + midpoint
-        
+
         #Set the window height
         window_height = np.int(img.shape[0]/self.num_windows)
-        
+
         #Identify the x and y positions of all nonzero pixels in the image
         nonzero = img.nonzero()
         nonzero_x = np.array(nonzero[1])
@@ -300,24 +300,24 @@ class Lane_Detector():
         right_lane_indexs = []
 
         for window in range(self.num_windows):
-            
+
             #Identify window boundaries in x and y (and right and left)
             win_y_low = img.shape[0] - (window+1) * window_height
             win_y_high = img.shape[0] - window * window_height
-            
+
             win_x_left_low = left_x_curr - self.margin
             win_x_left_high = left_x_curr + self.margin
             win_x_right_low = right_x_curr - self.margin
             win_x_right_high = right_x_curr + self.margin
-            
+
             #Draw the sliding windows for the left and right lanes
             if draw_windows == True:
-                
+
                 cv2.rectangle(out_img,(win_x_left_low,win_y_low),(win_x_left_high,win_y_high),
-                             (100,255,255), 3) 
+                             (100,255,255), 3)
                 cv2.rectangle(out_img,(win_x_right_low,win_y_low),(win_x_right_high,win_y_high),
                              (100,255,255), 3)
-            
+
             #Identify the nonzero pixels in x and y within the window
             good_left_indexs = ((nonzero_y >= win_y_low) & (nonzero_y < win_y_high) & \
                 (nonzero_x >= win_x_left_low) &  (nonzero_x < win_x_left_high)).nonzero()[0]
@@ -334,11 +334,11 @@ class Lane_Detector():
                 left_x_curr = np.int(np.mean(nonzero_x[good_left_indexs]))
             if len(good_right_indexs) > self.min_lane_pix:
                 right_x_curr = np.int(np.mean(nonzero_x[good_right_indexs]))
-        
+
         #Concatenate the array indicies
         left_lane_indexs = np.concatenate(left_lane_indexs)
         right_lane_indexs = np.concatenate(right_lane_indexs)
-        
+
         #Extract the left and righ line pixel positions
         left_x = nonzero_x[left_lane_indexs]
         left_y = nonzero_y[left_lane_indexs]
@@ -349,7 +349,7 @@ class Lane_Detector():
         #Fit a second order ploynomial
         left_fit = np.polyfit(left_y, left_x, 2)
         right_fit = np.polyfit(right_y, right_x, 2)
-        
+
         #TODO: See how to solve issue with bad lanes.
         #Possibly use the covariance?
 
@@ -367,7 +367,7 @@ class Lane_Detector():
         left_fit_[0] = np.mean(left_a[-10:])
         left_fit_[1] = np.mean(left_b[-10:])
         left_fit_[2] = np.mean(left_c[-10:])
-    
+
         right_fit_[0] = np.mean(right_a[-10:])
         right_fit_[1] = np.mean(right_b[-10:])
         right_fit_[2] = np.mean(right_c[-10:])
@@ -413,18 +413,18 @@ class Lane_Detector():
             img: The raw input BGR image of the lane/road.
 
         Returns:
-            final_img: The image with the lane traced over it.            
+            final_img: The image with the lane traced over it.
         '''
-        
+
         #Binarized the image using sobel filters to identify most probale regions for the lane
         binary_img = self.binarize_img(img)
-        
+
         #Change the perspective to have a pseudo "top-down" view of the lanes
         warped_img = self._perspective_warp(binary_img)
         #return(warped_img)
         #Perform sliding window to detect the lane curvatures
         ret, slide_img, curves, lanes, plot_y = self.sliding_window(warped_img, draw_windows=True)
-        
+
         if(ret == True):
             #Draw the lane region on a new colored picture.
             final_img = self.draw_lanes(img, curves[0], curves[1])
@@ -433,7 +433,7 @@ class Lane_Detector():
 
 class Lane_Detection_ROS():
     """
-    This class provides the interface between the Lane detection algorithm 
+    This class provides the interface between the Lane detection algorithm
     and the smile mobile robot running in the ROS ecosystem.
     """
     def __init__(self, node_name="lane_detector"):
@@ -451,16 +451,16 @@ class Lane_Detection_ROS():
 
         #TOPICS
         camera_topic = rospy.get_namespace() + 'camera1/image_raw'
-        
+
         #Subscriber to the image data coming from the robot
         self.camera_sub = rospy.Subscriber(camera_topic, Image, self._camera_callback)
-        
+
         #Convesion bridge between ROS image messages and OpenCV message types.
         self.bridge = CvBridge()
 
         #Initialize the lane detector algorithm
         self.lane_detector = Lane_Detector()
-        
+
         #Set the image size that is expected to be received
         self.img_size = [800, 800]
         self.img = np.zeros((self.img_size[0], self.img_size[1], 3), np.uint8)
@@ -468,7 +468,7 @@ class Lane_Detection_ROS():
         #Set the region from the source image to see the lane ahead
         self.src_roi = np.float32([(0.35, 0.60), (0.65, 0.60), (0, 0.8), (1, 0.8)])
         self.lane_detector._initialize_perspective_warp(self.img_size, self.img_size, self.src_roi)
-        
+
         self.rate = rospy.Rate(30) #30Hz fps
     def _camera_callback(self, img_msg):
         '''
@@ -484,7 +484,7 @@ class Lane_Detection_ROS():
             self.img = self.bridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridgeError as e:
             print(e)
-        
+
 
     def run(self):
         '''
@@ -495,17 +495,17 @@ class Lane_Detection_ROS():
         Returns:
             N/A
         '''
-        
+
         try:
             while not rospy.is_shutdown():
-                
+
                 ret, lane_detect_img = self.lane_detector.detect(self.img)
                 #roi = self.lane_detector.show_roi(self.img)
                 #cv2.imshow("ROI", roi)
-                
+
                 if(ret):
                     cv2.imshow("Lane Detection", self.lane_detector.show_roi(lane_detect_img))
-                
+
                 cv2.waitKey(1)
                 self.rate.sleep()
 
