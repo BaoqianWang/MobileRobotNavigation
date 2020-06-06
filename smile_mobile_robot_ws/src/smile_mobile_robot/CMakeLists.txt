@@ -22,6 +22,7 @@ add_message_files(
 add_service_files(
     FILES
     pid_gains.srv
+    bool_call.srv
 )
 
 generate_messages(
@@ -48,5 +49,6 @@ catkin_install_python(PROGRAMS
     src/helpers/send_desired_movement.py
     src/control/keyboard_teleop.py
     src/perception/vision/lane_detector.py
+    src/control/lane_follower.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
