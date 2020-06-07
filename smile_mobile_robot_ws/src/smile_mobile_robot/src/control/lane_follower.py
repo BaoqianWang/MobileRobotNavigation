@@ -46,19 +46,32 @@ class Lane_Follower:
         self.desired_movement_pub = rospy.Publisher(desired_movement_topic,
                                                     Float32MultiArray, queue_size=1)
 
+
         #Initialize the pid controller for tracking the lane
         #TODO: Add parameters for lane tracking pid to config file
-        self.lane_tracking_pid_controller = PID_Controller(k_p=0.002,
-                                                           k_i=0.0,
-                                                           k_d=0.0,
-                                                           integral_min=-0.1,
-                                                           integral_max=0.0,
-                                                           max_control_effort=1.0,
-                                                           min_control_effort=-1.0)
+        param_path = '/vision_params/lane_follower/pid/'
+
+        #Get the pid controller parameters from the parameter server
+        k_p = rospy.get_param(param_path + 'k_p')
+        k_i = rospy.get_param(param_path + 'k_i')
+        k_d = rospy.get_param(param_path + 'k_d')
+        integral_min = rospy.get_param(param_path + 'integral_min')
+        integral_max = rospy.get_param(param_path + 'integral_max')
+        max_control_effort = rospy.get_param(param_path + 'max_control_effort')
+        min_control_effort = rospy.get_param(param_path + 'min_control_effort')
+
+        self.lane_tracking_pid_controller = PID_Controller(k_p=k_p,
+                                                           k_i=k_i,
+                                                           k_d=k_d,
+                                                           integral_min=integral_min,
+                                                           integral_max=integral_max,
+                                                           max_control_effort=max_control_effort,
+                                                           min_control_effort=min_control_effort)
 
         #Service the enable or disable line following.
+        #This can be called to enable or disable the control of the robot based
+        #on line following
         rospy.Service('enable_line_following', bool_call, self._line_following_state)
-
         self.rate = rospy.Rate(10)
 
         #Initialize variables
@@ -70,7 +83,7 @@ class Lane_Follower:
 
         self.measured_velocity = 0.0
         self.measured_orientation = 0.0
-        self.desired_velocity = 1.0
+        self.desired_velocity = 0.4
 
     def _line_following_state(self, req):
         '''
@@ -82,6 +95,10 @@ class Lane_Follower:
             N/A
         '''
         self.lane_follow_enabled = req.val
+
+        #Set the robots velocity to zero and hold the current orientation
+        self.desired_movement_msg.data = [0.0, self.measured_orientation]
+        self.desired_movement_pub.publish(self.desired_movement_msg)
         return bool_callResponse()
 
     def _lane_tracking_callback(self, lane_tracking_msg):
@@ -144,10 +161,11 @@ class Lane_Follower:
             while not rospy.is_shutdown():
 
                 if(self.lane_follow_enabled):
+                    #print(self.camera_center_point, self.lane_center_point)
                     #Get the pid control effort the determine how much to steer
                     control_effort, error = self.lane_tracking_pid_controller.update(\
                                     self.camera_center_point, self.lane_center_point)
-
+                    print(control_effort)
                     #Translate the control effort into a yaw angle for the robot to
                     #face
                     adjustment_angle = self.measured_orientation + control_effort
@@ -164,11 +182,11 @@ class Lane_Follower:
 
                     #Write the velocity and orientation to the robot.
                     self.desired_movement_msg.data = [self.desired_velocity, self.desired_orientation]
-
+                    self.desired_movement_pub.publish(self.desired_movement_msg)
                 else:
-                    self.desired_movement_msg.data = [0.0, 0.0]
+                    self.desired_movement_msg.data = [0.0, self.desired_orientation]
 
-                self.desired_movement_pub.publish(self.desired_movement_msg)
+
 
                 self.rate.sleep()
 

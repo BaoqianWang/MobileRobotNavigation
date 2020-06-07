@@ -136,7 +136,6 @@ class PID_Controller():
 
         #Bound the integral if needed
         self.c_i = self.bound_value(self.c_i, self.integral_min, self.integral_max)
-
         control_effort = (self.k_p * self.c_p) \
                        + (self.k_i * self.c_i) \
                        + (self.k_d * self.c_d)

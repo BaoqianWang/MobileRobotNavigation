@@ -33,9 +33,10 @@ class Lane_Detector():
         self.sat_thresh = [10, 255]
         self.num_windows = 9
         self.margin = 150
-        self.min_lane_pix = 2
+        self.min_lane_pix = 2 #Minimum number of pixels detected as a lane in the sliding windows.
         self.center_line = 400 #The line to plot the trajectory point.(with respect to topdown view)
         self.center_line_region = [50, 50] #The number of vertical pixels above and below the center line.
+        self.min_lane_candidate_pix = 14000 #The number of possible pixels on the left and right side that helps validate there is a likely lane.
 
 
     def calibrate_camera(self, grid_count_h, grid_count_v, cal_save_file):
@@ -293,7 +294,7 @@ class Lane_Detector():
         midpoint = int(histogram.shape[0]/2)
         num_left_candidate_pixels = np.sum(histogram[:midpoint])
         num_right_candidate_pixels = np.sum(histogram[midpoint:])
-        if(num_left_candidate_pixels < 14000 or num_right_candidate_pixels < 14000):
+        if(num_left_candidate_pixels < self.min_lane_candidate_pix or num_right_candidate_pixels < self.min_lane_candidate_pix):
             return(False, None, None, None, None)
 
         left_peak_column = np.argmax(histogram[:midpoint])
@@ -430,7 +431,7 @@ class Lane_Detector():
         #cv2.circle(color_img, (center_point, self.center_line), 10, (0, 162, 255), thickness=-1)
         cv2.line(color_img, (center_point-20, self.center_line), (center_point+20, self.center_line), (255, 0, 0), thickness=10)
 
-        color_img = self.draw_vehicle_trajectory_line(color_img, 400)
+        color_img = self.draw_vehicle_trajectory_line(color_img, self.center_line)
 
         out_img = self._inv_perspective_warp(color_img)
         out_img = cv2.addWeighted(img, 1, out_img, 0.7, 0)
@@ -545,23 +546,47 @@ class Lane_Detection_ROS():
         #Convesion bridge between ROS image messages and OpenCV message types.
         self.bridge = CvBridge()
 
-        #Initialize the lane detector algorithm
-        self.lane_detector = Lane_Detector()
-
-        #Set the image size that is expected to be received
-        self.img_size = [800, 800]
-        self.img = np.zeros((self.img_size[0], self.img_size[1], 3), np.uint8)
-
-        #Set the region from the source image to see the lane ahead
-        self.src_roi = np.float32([(0.35, 0.60), (0.65, 0.60), (0, 0.8), (1, 0.8)])
-        self.lane_detector._initialize_perspective_warp(self.img_size, self.img_size, self.src_roi)
+        self._initialize_lane_detector()
 
         #Initialize the publisher for sending the the difference between the lane center
         #and robot center.
         self.lane_tracking_pub = rospy.Publisher(lane_tracking_topic, Float32MultiArray, queue_size=10)
 
-
         self.rate = rospy.Rate(30) #30Hz fps
+
+    def _initialize_lane_detector(self):
+        '''
+        Initialize all the components of the lane detector by loading in
+        the parameters from the parameter server.
+
+        Parameters:
+            N/A
+        Returns:
+            N/A
+        '''
+
+        #Initialize the lane detector algorithm
+        self.lane_detector = Lane_Detector()
+
+        param_path = '/vision_params/lane_detector/'
+
+        self.img_size = rospy.get_param(param_path + 'img_size')
+
+        #Generate a blank image
+        self.img = np.ones((self.img_size[0], self.img_size[1], 3), np.uint8)
+
+        self.lane_detector.sobel_x_thresh = rospy.get_param(param_path + 'sobel_x_thresh')
+        self.lane_detector.sat_thresh = rospy.get_param(param_path + 'sat_thresh')
+        self.lane_detector.num_windows = rospy.get_param(param_path + 'num_windows')
+        self.lane_detector.margin = rospy.get_param(param_path + 'margin')
+        self.center_line = rospy.get_param(param_path + 'center_line')
+        self.lane_detector.center_line = self.center_line
+        self.lane_detector.center_line_region = rospy.get_param(param_path + 'center_line_region')
+        src_roi = rospy.get_param(param_path + 'src_roi')
+        self.src_roi = np.float32(src_roi)
+        self.lane_detector.src_roi = self.src_roi
+
+        self.lane_detector._initialize_perspective_warp(self.img_size, self.img_size, self.src_roi)
 
     def _camera_callback(self, img_msg):
         '''
@@ -609,7 +634,7 @@ class Lane_Detection_ROS():
                 #If a valid lane is detected
                 if(ret):
                     show_img = lane_detect_img
-                    lane_tracking_msg.data = [1, 400, center_point]
+                    lane_tracking_msg.data = [1, self.img_size[1]//2, center_point]
 
                 #Publish the lane tracking information to follow the lane
                 self.lane_tracking_pub.publish(lane_tracking_msg)
