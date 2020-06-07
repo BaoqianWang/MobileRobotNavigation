@@ -2,6 +2,7 @@
 #include <SPI.h>
 #include <Adafruit_LSM9DS1.h>
 #include <Adafruit_Sensor.h>  // not used in this demo but required!
+#include <Servo.h>
 
 #define LSM9DS1_SCK A5
 #define LSM9DS1_MISO 12
@@ -9,24 +10,14 @@
 #define LSM9DS1_XGCS 6
 #define LSM9DS1_MCS 5
 
+//Address set for the I2C slave arduino reading the encoders
 #define SLAVE_ADDRESS_1 4
-#define SLAVE_ADDRESS_2 5
 
-#define FR_IN1 12
-#define FR_IN2 13
-#define FR_EN 11
-
-#define FL_IN1 6
-#define FL_IN2 7 
-#define FL_EN 5
-
-#define BR_IN1 8
-#define BR_IN2 10
-#define BR_EN 9
-
-#define BL_IN1 4
-#define BL_IN2 2
-#define BL_EN 3  
+#define FR_PWM_PIN 6
+#define FL_PWM_PIN 5
+#define BR_PWM_PIN 10
+#define BL_PWM_PIN 9
+Servo FR_motor, FL_motor, BR_motor, BL_motor;  
 
 Adafruit_LSM9DS1 lsm = Adafruit_LSM9DS1();
 
@@ -57,47 +48,18 @@ void setupIMU()
    lsm.setupGyro(lsm.LSM9DS1_GYROSCALE_245DPS); // 500 2000
 }
 
-void writePWM(int pwm1,int pwm2,int pwm3,int pwm4){
-  if(pwm4 >= 0){
-    digitalWrite(BL_IN1, HIGH);
-    digitalWrite(BL_IN2, LOW);
-    analogWrite(BL_EN, pwm4);
-    }
-  else{
-    digitalWrite(BL_IN1, LOW);
-    digitalWrite(BL_IN2, HIGH);
-    analogWrite(BL_EN, -1*pwm4);
-    }
-  if(pwm1 >= 0){
-    digitalWrite(FL_IN1, HIGH);
-    digitalWrite(FL_IN2, LOW);
-    analogWrite(FL_EN, pwm1);
-    }
-  else{
-    digitalWrite(FL_IN1, LOW);
-    digitalWrite(FL_IN2, HIGH);
-    analogWrite(FL_EN, -1*pwm1);
-    }
-  if(pwm2 >= 0){
-    digitalWrite(FR_IN1, HIGH);
-    digitalWrite(FR_IN2, LOW);
-    analogWrite(FR_EN, pwm2);
-    }
-  else{
-    digitalWrite(FR_IN1, LOW);
-    digitalWrite(FR_IN2, HIGH);
-    analogWrite(FR_EN, -1*pwm2);
-    }
-  if(pwm3 >= 0){
-    digitalWrite(BR_IN1, HIGH);
-    digitalWrite(BR_IN2, LOW);
-    analogWrite(BR_EN, pwm3);
-    }
-  else{
-    digitalWrite(BR_IN1, LOW);
-    digitalWrite(BR_IN2, HIGH);
-    analogWrite(BR_EN, -1*pwm3);
-    }
+void writePWM(int pwm_1,int pwm_2,int pwm_3,int pwm_4){
+  //Remap the PWM signals from -255, 255 to 0, 180 for the servo library
+  //Sum multiplied by a negative to account for motor directions
+  pwm_1 = (int)map(pwm_1, -255, 255, 0, 180);
+  pwm_2 = (int)map(pwm_2, -255, 255, 0, 180);
+  pwm_3 = (int)map(pwm_3, -255, 255, 0, 180);
+  pwm_4 = (int)map(-1*pwm_4, -255, 255, 0, 180);
+
+  FL_motor.write(pwm_1);
+  FR_motor.write(pwm_2);
+  BR_motor.write(pwm_3);
+  BL_motor.write(pwm_4);
 }
 
 void readWritePWM(){
@@ -179,7 +141,7 @@ void setup() {
   Serial.begin(9600);
 
   Serial.println("LSM9DS1 data read demo");
- 
+  
 // Try to initialise and warn if we couldn't detect the chip
   if (!lsm.begin())
   {
@@ -189,22 +151,13 @@ void setup() {
   Serial.println("Found LSM9DS1 9DOF");
 
   setupIMU();
-
-  pinMode(FR_IN1, OUTPUT);
-  pinMode(FR_IN2, OUTPUT);
-  pinMode(FR_EN, OUTPUT);
-
-  pinMode(FL_IN1, OUTPUT);
-  pinMode(FL_IN2, OUTPUT);
-  pinMode(FL_EN, OUTPUT);
-
-  pinMode(BR_IN1, OUTPUT);
-  pinMode(BR_IN2, OUTPUT);
-  pinMode(BR_EN, OUTPUT);
-
-  pinMode(BL_IN1, OUTPUT);
-  pinMode(BL_IN2, OUTPUT);
-  pinMode(BL_EN, OUTPUT);
+  
+  //Attach the PWM pins to control each motor using Serial Write.
+  FR_motor.attach(FR_PWM_PIN);
+  FL_motor.attach(FL_PWM_PIN);
+  BR_motor.attach(BR_PWM_PIN);
+  BL_motor.attach(BL_PWM_PIN);
+  
 }
 
 void loop() {
@@ -212,19 +165,19 @@ void loop() {
   char startDataWrite = 0xDA;
   char endDataWrite = 0xAD;
   readWritePWM();
-
-  /* ask to read IMU data */
+  
+  //ask to read IMU data
   lsm.read(); 
 
-  /* Get a new sensor event */
+  // Get a new sensor event 
   sensors_event_t a, m, g, temp;
   lsm.getEvent(&a, &m, &g, &temp);
   
-  /* Get encoder info */
+  // Get encoder info
   shaftFrequencies motors12 = getShaftFrequencies(SLAVE_ADDRESS_1);
   
   
-  /* Transmit serial package */
+  // Transmit serial package
       
   Serial.write(startDataWrite); //1 byte
   
@@ -285,9 +238,9 @@ void loop() {
 
   
   Serial.write(endDataWrite); // 1 byte
-
+  
   delay(10);
-
+  
 }
 
 floatIntBytes loadFloat(float val){

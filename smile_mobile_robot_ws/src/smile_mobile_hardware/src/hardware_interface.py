@@ -15,7 +15,6 @@ def writePWM(pwmList):
     b = bytearray()
     b.append(startWrite)
     ser.write(b)
-
     for i in range(4): # 4 pwms in custom message
         pwm_bytes = struct.pack('i', pwmList.data[i])
         
@@ -73,9 +72,8 @@ while not rospy.is_shutdown():
             STOP = hex(ord(ser.read(1)))
             if (STOP == "0xad"):
                 #encoder_msg.header.stamp = rospy.Time.now()
-                encoder_msg.data = [motor1_freq,motor2_freq,motor1_freq,motor2_freq]
+                encoder_msg.data = [-1*motor1_freq,motor2_freq,-1*motor1_freq,motor2_freq]
                 #imu_msg.header.stamp = rospy.Time.now()
-                
                 imu_msg.linear_acceleration.x = accel_x # accel
                 imu_msg.linear_acceleration.y = accel_y
                 imu_msg.linear_acceleration.z = accel_z
