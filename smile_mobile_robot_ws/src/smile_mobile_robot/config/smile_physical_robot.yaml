@@ -1,0 +1,8 @@
+pid:
+  steering: {k_d: 0.0, k_i: 0.63, k_p: 80.0}
+  velocity: {k_d: 0.0, k_i: 720.0, k_p: 0.0}
+
+vehicle_params: {vehicle_width: 0.3048, wheel_radius: 0.066675}
+
+com_ports:
+    arduino_1: '/dev/ttyACM0'

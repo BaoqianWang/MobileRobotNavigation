@@ -1,0 +1,25 @@
+Terminal Cam Check:
+gst-launch-1.0 v4l2src device=/dev/video1 ! queue ! video/x-h264,width=1280,height=720,framerate=30/1 ! h264parse ! avdec_h264 ! xvimagesink sync=false
+
+
+
+*check device number
+v4l2-ctl --list-devices
+
+*list controls
+v4l2-ctl -d /dev/video1 --list-ctrls
+
+*set autofocus off
+v4l2-ctl -d /dev/video1 --set-ctrl=focus_auto=0
+
+*show current resolution and mode
+v4l2-ctl -d /dev/video1 --all
+
+*show supported formats
+v4l2-ctl -d /dev/video1 --list-formats
+v4l2-ctl -d /dev/video1 --list-formats-ext
+
+*select resoltion and mode [must be supported]
+v4l2-ctl --device=/dev/video1 --set-fmt-video=width=680,height=420,pixelformat='H264'
+
+
