@@ -54,10 +54,9 @@
     <road name='Solid_Lane'>
       <width>4</width>
       <point>0 2 0</point>
-      <point>10 2 0</point>
       <material>
         <script>
-          <uri>file://media/materials/scripts/smile.material</uri>
+          <uri>model://media/materials/scripts/smile.material</uri>
           <name>Smile/Solid_Lane</name>
         </script>
       </material>
@@ -65,21 +64,18 @@
     <road name='Intersection'>
       <width>4</width>
       <point>10 2 0</point>
-      <point>14 2 0</point>
       <material>
         <script>
-          <uri>file://media/materials/scripts/smile.material</uri>
+          <uri>model://media/materials/scripts/smile.material</uri>
           <name>Smile/Intersection</name>
         </script>
       </material>
     </road>
     <road name='Two_Lane'>
       <width>4</width>
-      <point>12 4 0</point>
-      <point>12 18 0</point>
       <material>
         <script>
-          <uri>file://media/materials/scripts/smile.material</uri>
+          <uri>model://media/materials/scripts/smile.material</uri>
           <name>Smile/Two_Lane</name>
         </script>
       </material>
@@ -87,14 +83,9 @@
     <road name='Two_way'>
       <width>4</width>
       <point>12 0 0</point>
-      <point>12 -5 0</point>
-      <point>11.5 -6 0</point>
-      <point>10.5 -7 0</point>
-      <point>9.5 -7.5 0</point>
-      <point>0 -7.5 0</point>
       <material>
         <script>
-          <uri>file://media/materials/scripts/smile.material</uri>
+          <uri>model://media/materials/scripts/smile.material</uri>
           <name>Smile/Two_Way</name>
         </script>
       </material>

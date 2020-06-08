@@ -1,15 +1,20 @@
 <?xml version="1.0"?>
 <robot name="smile" xmlns:xacro="http//www.ros.org/wiki/xacro">
-  <!--chassis Dimension [9" 10.5" 1.32"]-->
-  <xacro:property name="chassis_width" value="0.2286"/>
-  <xacro:property name="chassis_length" value="0.2667"/>
-  <xacro:property name="chassis_height" value="0.033528"/>
-  <xacro:property name="chassis_mass" value="1.0"/>
+   <xacro:property name="scale" value="3.0"/>
 
-  <xacro:property name="wheel_radius" value="0.06858"/>
-  <xacro:property name="wheel_width" value="0.0254"/>
-  <xacro:property name="wheel_pos_offset" value=".0254"/>
-  <xacro:property name="wheel_mass" value="0.5"/>
+   <!--chassis Dimension [9" 10.5" 1.32"]-->
+   <xacro:property name="chassis_width" value="${scale * 0.2286}"/>
+   <xacro:property name="chassis_length" value="${scale * 0.2667}"/>
+   <xacro:property name="chassis_height" value="${scale * 0.033528}"/>
+   <xacro:property name="chassis_mass" value="${scale * 1.0}"/>
+
+   <xacro:property name="wheel_radius" value="${scale * 0.06858}"/>
+   <xacro:property name="wheel_width" value="${scale * 0.0254}"/>
+   <xacro:property name="wheel_pos_offset" value="${scale * 0.0254}"/>
+   <xacro:property name="wheel_mass" value="${scale * 0.5}"/>
+
+   <xacro:property name="sensor_mount_width" value="${scale * 0.15}"/>
+   <xacro:property name="sensor_mount_height" value="${scale * 0.2}"/>
 
   <xacro:property name="pi_div_2" value="1.57075"/>
 
@@ -312,27 +317,54 @@
 </gazebo>
 
 <!--Camera sensor-->
-<link name="camera_link">
 
-  <collision>
+<link name="sensor_mount">
+
+   <collision>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <box size="0.05 0.02 0.02"/>
+        <box size="${sensor_mount_width} ${sensor_mount_width} ${sensor_mount_height}"/>
     </geometry>
   </collision>
 
   <visual>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <geometry>
-      <box size="0.05 0.02 0.02"/>
+      <box size="${sensor_mount_width} ${sensor_mount_width} ${sensor_mount_height}"/>
     </geometry>
     <material name="black"/>
   </visual>
+
 </link>
 
-<joint name="chassis_to_camera_link" type="fixed">
+<joint name="chassis_to_sensor_mount" type="fixed">
+    <axis xyz="0 0 0"/>
+    <origin xyz="0 0 ${(chassis_height / 2.0) + (sensor_mount_height/2.0)}" rpy="0 0 0"/>
+    <parent link="chassis"/>
+    <child link="sensor_mount"/>
+</joint>
+
+<xacro:property name="camera_dim" value="0.02"/>
+<link name="camera_link">
+
+  <collision>
+    <origin xyz="${camera_dim} 0 0" rpy="0 0 0"/>
+    <geometry>
+        <box size="${camera_dim} ${camera_dim} ${camera_dim}"/>
+    </geometry>
+  </collision>
+
+  <visual>
+    <origin xyz="${camera_dim} 0 0" rpy="0 0 0"/>
+    <geometry>
+       <box size="${camera_dim} ${camera_dim} ${camera_dim}"/>
+    </geometry>
+  </visual>
+</link>
+
+<joint name="sensor_mount_to_camera_link" type="fixed">
   <axis xyz="0 0 0"/>
-  <origin xyz="${chassis_length/2.0} 0 ${chassis_height/2.0 + 0.01}" rpy="0 0 0"/>
+  <origin xyz="${sensor_mount_width/2.0} 0 ${3.0*sensor_mount_height / 4.0}" rpy="0 0 0"/>
   <parent link="chassis"/>
   <child link="camera_link"/>
 </joint>
