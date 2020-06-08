@@ -83,7 +83,9 @@ class Lane_Follower:
 
         self.measured_velocity = 0.0
         self.measured_orientation = 0.0
-        self.desired_velocity = 0.4
+
+        #Base velocity
+        self.desired_velocity = 0.5
 
     def _line_following_state(self, req):
         '''
@@ -165,11 +167,10 @@ class Lane_Follower:
                     #Get the pid control effort the determine how much to steer
                     control_effort, error = self.lane_tracking_pid_controller.update(\
                                     self.camera_center_point, self.lane_center_point)
-                    print(control_effort)
+
                     #Translate the control effort into a yaw angle for the robot to
                     #face
                     adjustment_angle = self.measured_orientation + control_effort
-                    print("Adjustment Angle:", adjustment_angle, "Error:", error)
                     if(adjustment_angle < -1*math.pi):
                         self.desired_orientation = 2.0*math.pi + adjustment_angle
 
@@ -181,7 +182,8 @@ class Lane_Follower:
 
 
                     #Write the velocity and orientation to the robot.
-                    self.desired_movement_msg.data = [self.desired_velocity, self.desired_orientation]
+                    velocity = self.desired_velocity - abs(0.005 * error)
+                    self.desired_movement_msg.data = [velocity, self.desired_orientation]
                     self.desired_movement_pub.publish(self.desired_movement_msg)
                 else:
                     self.desired_movement_msg.data = [0.0, self.desired_orientation]

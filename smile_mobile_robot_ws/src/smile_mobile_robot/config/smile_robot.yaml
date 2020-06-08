@@ -12,16 +12,16 @@ vision_params:
     num_windows: 9
     margin: 150
     min_lane_pix: 2
-    center_line: 400
+    center_line: 600
     center_line_region: [50, 50]
     src_roi: [[0.35, 0.60], [0.65, 0.60], [0, 0.8], [1, 0.8]]
     img_size: [800, 800]
-    min_lane_candidate_pix: 14000
+    min_lane_candidate_pix: 10000
 
   lane_follower:
     pid:
-      k_p: 0.00
-      k_i: 0.0005
+      k_p: 0.002
+      k_i: 0.00
       k_d: 0.0
       integral_min: -100
       integral_max: 100
