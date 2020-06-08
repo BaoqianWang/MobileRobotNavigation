@@ -22,6 +22,8 @@ include_directories(
 
 catkin_install_python(PROGRAMS
     src/hardware_interface.py
+    src/webcam_publish.py
+    src/webcam_receive.py
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import cv2
 import rospy
 from sensor_msgs.msg import Image
@@ -41,7 +42,7 @@ class image_capture:
         except rospy.ROSInterruptException:
             pass
     
-if __name__ == '__main__':
+if __name__ == "__main__":
 	img_cap = image_capture()
 	img_cap.run()
 	img_cap.cv_capture.release()

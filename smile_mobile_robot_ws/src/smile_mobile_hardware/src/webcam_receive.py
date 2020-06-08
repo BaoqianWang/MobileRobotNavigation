@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import cv2
 import rospy
 from sensor_msgs.msg import Image
@@ -33,7 +34,7 @@ class image_capture:
             print(e)
         
         cv2.imshow("Image window", cv_image)
-
+        cv2.waitKey(1)
 
     def run(self):
         try:
