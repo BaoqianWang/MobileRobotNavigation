@@ -4,10 +4,14 @@
   <arg name="use_sim_time" default="true"/>
   <arg name="gui" default="false"/>
   <arg name="headless" default="false"/>
-  <arg name="debug" default="false"/>
+  <arg name="x" default="0"/>
+  <arg name="y" default="0"/>
+  <arg name="yaw" default="0"/>
+  <arg name="debug" default="false" />
+
 
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <arg name="world_name" value="$(find smile_mobile_gazebo)/worlds/smile_world.world"/>
+    <arg name="world_name" value="$(find smile_mobile_gazebo)/worlds/smile_world_pure_trees.world"/>
     <arg name="debug" value="$(arg debug)" />
     <arg name="gui" value="$(arg gui)" />
     <arg name="paused" value="$(arg paused)"/>
@@ -20,5 +24,5 @@
 
 
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen"
-    args="-urdf -model /smile -param robot_description"/>
+    args="-x $(arg x) -y $(arg y)  -Y $(arg yaw) -urdf -model /smile -param robot_description"/>
 </launch>

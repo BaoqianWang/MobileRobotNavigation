@@ -15,6 +15,13 @@
     <node name="movement_controller" pkg="smile_mobile_robot" type="movement_controller.py"/>
   </group>
 
+  <include file="$(find husky_gazebo)/launch/spawn_husky.launch">
+    <arg name="robot_namespace" value="husky_beta"/>
+    <arg name="x" value="-27.7"/>
+    <arg name="y" value="4.26"/>
+    <arg name="yaw" value="0"/>
+  </include>
+
   <!--Launch the movement controller for PID control
   <include file="$(find smile_mobile_robot)/launch/movement_controller.launch"/>
   -->

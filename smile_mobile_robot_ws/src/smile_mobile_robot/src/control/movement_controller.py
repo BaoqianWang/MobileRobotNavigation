@@ -94,8 +94,8 @@ class Movement_Controller:
         self.steering_pid_controller = PID_Controller(k_p=steering_k_p,
                                                       k_i=steering_k_i,
                                                       k_d=steering_k_d,
-                                                      max_control_effort=100,
-                                                      min_control_effort=-100,
+                                                      max_control_effort=255,
+                                                      min_control_effort=-255,
                                                       integral_min=-10,
                                                       integral_max=10,
                                                       angle_error=True)
