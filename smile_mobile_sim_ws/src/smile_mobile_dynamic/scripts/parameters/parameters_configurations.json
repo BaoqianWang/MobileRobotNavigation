@@ -1,0 +1,11 @@
+{
+"host_initial": [25.62, -14.15,0],
+"host_goal": [-30,13,0],
+"host_pref_speed": 0.7,
+"host_radius":1,
+"other_initial": [-15,-0.2,0],
+"other_goal": [-6,-0.2,0],
+"other_pref_speed": 0.5,
+"other_radius": 1.5,
+"other_name": "beta"
+}

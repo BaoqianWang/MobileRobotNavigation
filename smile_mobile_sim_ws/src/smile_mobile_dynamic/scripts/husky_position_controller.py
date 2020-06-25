@@ -3,7 +3,6 @@
 import rospy, tf
 import geometry_msgs.msg, nav_msgs.msg
 from math import *
-from std_msgs.msg import Float32MultiArray
 from time import sleep
 
 def huskyOdomCallback(message,cargs):
@@ -15,8 +14,8 @@ def huskyOdomCallback(message,cargs):
 
     # Tunable parameters
     wgain = 12 #15.0 # Gain for the angular velocity [rad/s / rad]
-    vconst = 1 # Linear velocity when far away [m/s]
-    distThresh = 0.5 # Distance treshold [m]
+    vconst = .5 # Linear velocity when far away [m/s]
+    distThresh = 0.6 # Distance treshold [m]
 
     # Generate a simplified pose
     pos = message.pose.pose
@@ -25,42 +24,43 @@ def huskyOdomCallback(message,cargs):
     angles = tf.transformations.euler_from_quaternion((quat.x,quat.y,
                                                        quat.z,quat.w))
     theta = angles[2]
-    pose = [pos.position.x, pos.position.y, theta]  # X, Y, Theta
+    pose = [pos.position.x-15, pos.position.y-0.2, theta]  # X, Y, Theta
 
     # Proportional Controller
     v = 0 # default linear velocity
     w = 0 # default angluar velocity
-    u = 0
     distance = sqrt((pose[0]-goal[0])**2+(pose[1]-goal[1])**2)
     if (distance > distThresh):
         v = vconst
         desireYaw = atan2(goal[1]-pose[1],goal[0]-pose[0])
-        u = desireYaw
-        #bound = atan2(sin(u),cos(u))
-        #w = min(0.5 , max(-0.5, wgain*bound))
+        u = desireYaw-theta
+        bound = atan2(sin(u),cos(u))
+        w = min(0.5 , max(-0.5, wgain*bound))
 
     # Publish
-    msg.data = [v, u]
+    msg.linear.x = v
+    msg.angular.z = w
     pub.publish(msg)
+
     # Reporting
-    print('huskyOdomCallback: x=%4.1f,y=%4.1f dist=%4.2f, cmd.v=%4.2f, cmd.w=%4.2f'%(pose[0],pose[1],distance,v,u))
+    print('huskyOdomCallback: x=%4.1f,y=%4.1f dist=%4.2f, cmd.v=%4.2f, cmd.w=%4.2f'%(pose[0],pose[1],distance,v,w))
 
 ########################################
 # Main Script
 # Initialize our node
-rospy.init_node('nre_simhuskycontrol',anonymous=True)
+rospy.init_node('husky_position_controller',anonymous=True)
 
 # Set waypoint for Husky to drive to
-goal = [2,2]  # Goal
+goal = [-6,-0.2]  # Goal
 
 # Setup publisher
-cmdmsg = Float32MultiArray()
-cmdpub = rospy.Publisher('/smile/desired/movement',Float32MultiArray, queue_size=10)
+cmdmsg = geometry_msgs.msg.Twist()
+cmdpub = rospy.Publisher('/husky_beta/husky_velocity_controller/cmd_vel',geometry_msgs.msg.Twist, queue_size=10)
 
 # Setup subscription - which implemets our controller.
 # We pass the publisher, the message to publish and the goal as
 # additional parameters to the callback function.
-rospy.Subscriber('/smile/raw/odometry',nav_msgs.msg.Odometry,huskyOdomCallback,
+rospy.Subscriber('/husky_beta/odometry/filtered',nav_msgs.msg.Odometry,huskyOdomCallback,
                  (cmdpub,cmdmsg,goal))
 # spin() simply keeps python from exiting until this node is stopped
 rospy.spin()

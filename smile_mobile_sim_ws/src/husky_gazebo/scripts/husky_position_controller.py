@@ -14,8 +14,8 @@ def huskyOdomCallback(message,cargs):
 
     # Tunable parameters
     wgain = 12 #15.0 # Gain for the angular velocity [rad/s / rad]
-    vconst = 1.5 # Linear velocity when far away [m/s]
-    distThresh = 0.7 # Distance treshold [m]
+    vconst = .5 # Linear velocity when far away [m/s]
+    distThresh = 0.6 # Distance treshold [m]
 
     # Generate a simplified pose
     pos = message.pose.pose
@@ -24,7 +24,7 @@ def huskyOdomCallback(message,cargs):
     angles = tf.transformations.euler_from_quaternion((quat.x,quat.y,
                                                        quat.z,quat.w))
     theta = angles[2]
-    pose = [pos.position.x-27.7, pos.position.y+4.26, theta]  # X, Y, Theta
+    pose = [pos.position.x-15, pos.position.y-0.2, theta]  # X, Y, Theta
 
     # Proportional Controller
     v = 0 # default linear velocity
@@ -51,7 +51,7 @@ def huskyOdomCallback(message,cargs):
 rospy.init_node('husky_position_controller',anonymous=True)
 
 # Set waypoint for Husky to drive to
-goal = [-16,4.26]  # Goal
+goal = [-6,-0.2]  # Goal
 
 # Setup publisher
 cmdmsg = geometry_msgs.msg.Twist()

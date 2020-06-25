@@ -1,13 +1,13 @@
 <launch>
-  <arg name="x" value="-27.7"/>
-  <arg name="y" value="4.26"/>
+  <arg name="x" value="-15"/>
+  <arg name="y" value="-0.2"/>
   <arg name="yaw" value="0"/>
 
   <!--Launch the gazebo simulation of smile mobile robot-->
   <include file="$(find smile_mobile_gazebo)/launch/smile_mobile_world.launch">
     <arg name="gui" value="true"/>
-    <arg name="x" value="-6.87"/>
-    <arg name="y" value="0"/>
+    <arg name="x" value="25.62"/>
+    <arg name="y" value="-14.15"/>
     <arg name="yaw" value="0"/>
   </include>
 
@@ -29,6 +29,7 @@
     <arg name="y" value="$(arg y)"/>
     <arg name="yaw" value="$(arg yaw)"/>
   </include>
-<node name="cadrl_avodiance" pkg="smile_mobile_dynamic" type="cadrl_custom.py"/>
+
+  <!--<node name="cadrl_avodiance" pkg="smile_mobile_dynamic" type="cadrl_custom.py"/>-->
 
 </launch>

@@ -18,25 +18,41 @@ waypoints={'a': [-6.87, 0],
 'f': [20.393, 1.3968],
 'g': [15.78, -20.69],
 'h': [33.46, 1.20],
-'i': [33.00, 13.87]
+'i': [33.00, 13.87],
+'j': [7.77, 13.48],
+'k': [2.52, 11.23],
+'l': [32.57, -11.1],
+'m': [28.56, -14.08],
+'o': [25.03, -10.39],
+'p': [20.89, -5.48],
+'q': [15.53, -7.08]
 }
 
 
 def paved_shortest_path(startNode, endNode):
     graph = {'a': {'c':7.2},
            'b': {'d':7.2},
-           'c': {'a':7.2,'e':32,'f':20},
+           'c': {'a':7.2,'k':11,'f':20},
            'd': {'g':15},
-           'e': {'c':32,'f':12,'i':13},
-           'f': {'h':13,'c':20},
-           'g': {'h':39,'d':15},
-           'h': {'g':39,'i':12},
-           'i': {'h':12,'e':13}}
+           'e': {'j':13,'f':12,'i':13},
+           'f': {'h':13,'c':20,'e':12},
+           'g': {'q':13,'d':15},
+           'h': {'l':12,'i':12,'f':13},
+           'i': {'h':12,'e':13},
+           'j': {'k':5.5,'e':13},
+           'k': {'j':5.5,'c':10},
+           'l': {'h':12,'m':5.2},
+           'm': {'o':5.2,'l':5.2},
+           'o': {'m':5.2,'p':5.2},
+           'p': {'o':5.2,'q':5.2},
+           'q': {'p':5.2,'g':13}
+           }
     path=shortest_path(graph, startNode, endNode)
     cost=0
     for i, node in enumerate(path[:-1]):
         cost+=graph[path[i]][path[i+1]]
     return cost, path
+
 
 def tic():
   return time.time()
@@ -124,7 +140,6 @@ def generate_database(start, map_file, resolution):
         costa, patha = paved_shortest_path(waypoint,'a')
         print('The path is',patha)
         goals=[(i,j,0.2) for i in np.arange(-33,-10,4) for j in np.arange(-23,22,4)]
-        #print(goals)
         start_unpaved=[waypoints['a'][0],waypoints['a'][1],0.2]
 
         for i in range(-33,-10,4):
@@ -150,13 +165,7 @@ def generate_database(start, map_file, resolution):
     return
 
 if __name__=="__main__":
-  #test_single_cube()
-  #test_maze()
-  #test_flappy_bird()
-  #test_monza()
-  #test_window()
-  #test_tower()
-  #test_room()
+
   start = np.array([-10, 22, 0.2])
   #goal = np.array([9.0, 7.0, 1.5])
   generate_database(start,"./maps/smile_world_pure_trees.txt",4)
