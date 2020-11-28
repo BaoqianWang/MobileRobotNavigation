@@ -4,6 +4,7 @@ import Planner
 import pyrr
 from nose.tools import assert_raises
 from dijkstra import dijkstra, shortest_path, make_graph
+import matplotlib.pyplot as plt
 
 waypoints={'a': [-6.87, 0],
 'b': [-6.75, -21.36],
@@ -23,14 +24,15 @@ waypoints={'a': [-6.87, 0],
 'q': [15.53, -7.08]
 }
 
+
 graph = {'a': {'c':7.2},
        'b': {'d':7.2},
        'c': {'a':7.2,'k':11,'f':20},
        'd': {'g':15},
        'e': {'j':13,'f':12,'i':13},
-       'f': {'h':13,'c':20},
+       'f': {'h':13,'c':20,'e':12},
        'g': {'q':13,'d':15},
-       'h': {'l':12,'i':12},
+       'h': {'l':12,'i':12,'f':13},
        'i': {'h':12,'e':13},
        'j': {'k':5.5,'e':13},
        'k': {'j':5.5,'c':10},
@@ -62,12 +64,13 @@ class PathQueryCorrection():
         self.initial=initial
         self.goal=goal
         self.filename=database_path
+        self.boundary, self.blocks = load_map('/home/smile/smile-mobile/smile_mobile_sim_ws/src/smile_mobile_dynamic/scripts/Astar/maps/smile_world_pure_trees.txt')
 
     def unpaved_path_planning(self,start, goal, resolution):
         #Unpaved road path planning
-        boundary, blocks = load_map('/home/smile/smile-mobile/smile_mobile_sim_ws/src/smile_mobile_dynamic/scripts/Astar/maps/smile_world_pure_trees.txt')
-        MP = Planner.MyPlanner(boundary, blocks, resolution) # TODO: replace this with your own planner implementation
-        rx, ry, rz = MP.plan(start, goal)
+
+        MP = Planner.MyPlanner(self.boundary, self.blocks, resolution) # TODO: replace this with your own planner implementation
+        rx, ry = MP.plan(start, goal)
         return rx,ry
 
     def paved_path_planning(self,startNode,endNode):
@@ -78,8 +81,8 @@ class PathQueryCorrection():
     def path_query(self):
         with open(self.filename,'r') as fd:
             database=json.load(fd)
-        start=[self.initial[0], self.initial[1],0.2]
-        goal=[self.goal[0],self.goal[1],0.2]
+        start=[self.initial[0], self.initial[1]]
+        goal=[self.goal[0],self.goal[1]]
         distance_list=[]
         for path in database:
             path_start=path['start']
@@ -87,16 +90,38 @@ class PathQueryCorrection():
             dist = np.linalg.norm(np.asarray(path_start)-np.asarray(start))+np.linalg.norm(np.asarray(path_end)-np.asarray(goal))
             distance_list.append(dist)
 
+
         ind = np.argmin(distance_list)
         path=database[ind]
+
         self.goal_x=list(reversed(path['x']))
         self.goal_y=list(reversed(path['y']))
+
+        plt.figure()
+        ax=plt.subplot(1,1,1)
+
+        plt.plot(self.goal_x,self.goal_y,label='Path')
+        plt.plot(self.goal_x,self.goal_y,'.')
+        ax.scatter(goal[0], goal[1],  marker='*',c='r',label='Goal')
+        ax.scatter(initial[0], initial[1],  marker='d', c='r',label='Start')
+        plt.xlabel('x (m)')
+        plt.ylabel('y (m)')
+        plt.legend()
+
+        for block in self.blocks:
+            circ1 = plt.Rectangle((block[0], block[1]), width=3.2, height=3.2,fc='tab:gray')
+            ax.add_patch(circ1)
+        axes = plt.gca()
+        axes.set_xlim([-35,38])
+        axes.set_ylim([-25,25])
+        plt.savefig('query_database%d.png')
+
 
     def path_correction(self):
 
         print('extracted path', self.goal_x,self.goal_y)
         #Replan for the target
-        start_unpaved=[self.goal_x[-1],self.goal_y[-1],0.2]
+        start_unpaved=[self.goal_x[-1],self.goal_y[-1]]
         rx,ry = self.unpaved_path_planning(start_unpaved,np.asarray([self.goal[0],self.goal[1],0.2]),4)
         print('unpaved scenario',rx,ry)
 
@@ -121,6 +146,31 @@ class PathQueryCorrection():
         with open('final_path.txt', 'w') as fd:
             fd.write(json.dumps(final_path))
 
+        plt.figure()
+        ax=plt.subplot(1,1,1)
+
+        self.goal_x.insert(0,self.initial[0])#+self.goal_x+self.goal[0]
+        self.goal_y.insert(0,self.initial[1])#+self.goal_y+self.goal[1]
+
+        self.goal_x.append(self.goal[0])#+self.goal_x+self.goal[0]
+        self.goal_y.append(self.goal[1])#+self.goal_y+self.goal[1]
+
+
+        plt.plot(self.goal_x,self.goal_y,label='Path')
+        plt.plot(self.goal_x,self.goal_y,'.')
+        ax.scatter(self.goal[0], self.goal[1],  marker='*',c='r',label='Goal')
+        ax.scatter(self.initial[0], self.initial[1],  marker='d', c='r',label='Start')
+        plt.xlabel('x (m)')
+        plt.ylabel('y (m)')
+        plt.legend()
+
+        for block in self.blocks:
+            circ1 = plt.Rectangle((block[0], block[1]), width=3.2, height=3.2,fc='tab:gray')
+            ax.add_patch(circ1)
+        axes = plt.gca()
+        axes.set_xlim([-35,38])
+        axes.set_ylim([-25,25])
+        plt.savefig('correction_database%d.png')
 
     def run(self):
         self.path_query()

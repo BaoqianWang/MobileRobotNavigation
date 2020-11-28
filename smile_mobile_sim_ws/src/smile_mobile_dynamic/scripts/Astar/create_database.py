@@ -28,6 +28,7 @@ waypoints={'a': [-6.87, 0],
 'q': [15.53, -7.08]
 }
 
+selected_waypoints=['a','h','f','k']
 
 def paved_shortest_path(startNode, endNode):
     graph = {'a': {'c':7.2},
@@ -120,7 +121,7 @@ def runtest(mapfile, start, goal, resolution, verbose = True):
 
   # Call the motion planner
   t0 = tic()
-  rx, ry, rz = MP.plan(start, goal)
+  rx, ry = MP.plan(start, goal)
   path=dict()
   path['goal']=goal
   path['start']=start
@@ -128,37 +129,62 @@ def runtest(mapfile, start, goal, resolution, verbose = True):
   path['y']=ry[:-1]
   #print(path)
   toc(t0,"Planning")
-  return rx,ry,rz
+  return rx,ry
 
 def generate_database(start, map_file, resolution):
     database=[]
-
+    k=0
     #Path paved scenario
-    for waypoint, position in waypoints.items():
+    for waypoint in selected_waypoints:
         print('The waypoint is', waypoint)
-        start=[position[0],position[1],0.2]
+        position=waypoints[waypoint]
+        start=[position[0],position[1]]
         costa, patha = paved_shortest_path(waypoint,'a')
         print('The path is',patha)
-        goals=[(i,j,0.2) for i in np.arange(-33,-10,4) for j in np.arange(-23,22,4)]
-        start_unpaved=[waypoints['a'][0],waypoints['a'][1],0.2]
+        #goals=[(i,j) for i in np.arange(-33,-10,4) for j in np.arange(-23,22,4)]
+        start_unpaved=[waypoints['a'][0],waypoints['a'][1]]
+
 
         for i in range(-33,-10,4):
-            for j in range(-23,22,4):
-                goal=[i,j,0.2]
+            for j in range(-10,10,4):
+                k+=1
+                goal=[i,j]
                 path=dict()
-                rx,ry,rz = runtest(map_file,start_unpaved,np.asarray(goal),resolution)
-                for node in reversed(patha):
-                    print(node)
+                rx,ry = runtest(map_file,start_unpaved,np.asarray(goal),resolution)
+                for node in reversed(patha[:-1]):
                     rx.append(waypoints[node][0])
                     ry.append(waypoints[node][1])
                 length=len(rx)
                 boundary, blocks=load_map(map_file)
+
                 #path['start']=start
                 path['goal']=goal#[goal[0],goal[1],goal[2]]
                 path['x']=rx
                 path['y']=ry
                 path['start']=start
                 database.append(path)
+                plt.figure()
+                ax=plt.subplot(1,1,1)
+
+                plt.plot(rx,ry,label='Path')
+                plt.plot(rx,ry,'.')
+                ax.scatter(goal[0], goal[1],  marker='*',c='r',label='Goal')
+                ax.scatter(start[0], start[1],  marker='d', c='r',label='Start')
+                plt.xlabel('x (m)')
+                plt.ylabel('y (m)')
+                plt.legend()
+
+                for block in blocks:
+                    circ1 = plt.Rectangle((block[0], block[1]), width=3.2, height=3.2,fc='tab:gray')
+                    ax.add_patch(circ1)
+                axes = plt.gca()
+                axes.set_xlim([-35,38])
+                axes.set_ylim([-25,25])
+                if(k%2==0):
+                    print(waypoint)
+                    plt.savefig('construction_database%d' %k)
+
+
     with open('path_database.txt', 'w') as fd:
         fd.write(json.dumps(database))
 
@@ -166,6 +192,6 @@ def generate_database(start, map_file, resolution):
 
 if __name__=="__main__":
 
-  start = np.array([-10, 22, 0.2])
+  start = np.array([-10, 22])
   #goal = np.array([9.0, 7.0, 1.5])
   generate_database(start,"./maps/smile_world_pure_trees.txt",4)
